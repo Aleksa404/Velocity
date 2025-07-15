@@ -6,21 +6,6 @@ const UserProfile = () => {
 
   const handleBecomeTrainer = async () => {
     try {
-      console.log(user?.publicMetadata);
-      //   // Poziv ka vašem API-ju
-      //   const response = await fetch('/api/user/become-trainer', {
-      //     method: 'POST',
-      //   });
-      //   if (response.ok) {
-      //     // Ažuriraj Clerk metadata
-      //     await user?.update({
-      //       publicMetadata: {
-      //         ...user.publicMetadata,
-      //         role: 'TRAINER'
-      //       }
-      //     });
-      //     setIsOpen(false);
-      //   }
     } catch (error) {
       console.error("Error:", error);
     }

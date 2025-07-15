@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  addTrainerRole,
   createUser,
   deleteUserbyEmail,
   getAllUsers,
@@ -18,5 +19,7 @@ router.get("/:id", (req, res) => {
 router.post("/createUser", createUser);
 
 router.delete("/deleteUser/:email", deleteUserbyEmail);
+
+router.get("/addTrainerRole", addTrainerRole);
 
 export default router;

@@ -41,3 +41,5 @@ export const deleteUserbyEmail = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to delete user" });
   }
 };
+
+export const addTrainerRole = async (req: Request, res: Response) => {};

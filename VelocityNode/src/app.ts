@@ -1,14 +1,12 @@
 import "dotenv/config";
 import express from "express";
-import { Request, Response } from "express";
 import usersRouter from "./routes/users";
 import cors from "cors";
 import { PrismaClient } from "@prisma/client";
-import { ApiResponse } from "./types/ApiResponse";
 import { clerkMiddleware } from "@clerk/express";
-import { requireAuth, clerkClient } from "@clerk/express";
 import clerkRouter from "./routes/clerkWebhooks";
 import bodyParser from "body-parser";
+import { requireRole } from "./middleware/authMiddleware";
 
 const app = express();
 app.use(cors());
@@ -30,44 +28,23 @@ app.use(clerkMiddleware());
 //routes
 app.use("/api/users", usersRouter);
 
-app.get("/", requireAuth(), async (req: Request, res: Response) => {
-  try {
-    const users = await clerkClient.users.getUserList();
-    console.log(users);
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    return res.status(500).json({ error: "Failed to fetch users" });
-  }
-  const response: ApiResponse<string> = {
-    success: true,
-    data: "Welcome to the Velocity API",
-    message: "API is running successfully",
-    error: undefined,
-  };
-  res.status(200).json(response);
+app.get("/trainer-endpoint", requireRole("TRAINER"), (req, res) => {
+  res.json({ message: "Welcome, trainer!" });
 });
-app.get("/test", async (req: Request, res: Response) => {
-  try {
-    // const user = prisma.user.findFirst({
-    //   where: {
-    //     email: "test@gmail.com"
-    //   }});
-    // if (!user) {
-    //   return res.status(404).json({ error: "User not found" });
-    // }
-    const users = await prisma.user.findMany();
-    console.log(users);
+app.get("/user-endpoint", requireRole("USER"), (req, res) => {
+  res.json({ message: "Welcome, user!" });
+});
 
-    return res.status(200).json({
-      success: true,
-      data: users,
-      message: "Users fetched successfully",
-      error: null,
-    });
-  } catch (error) {
-    console.error("Error fetching user:", error);
-    return res.status(500).json({ error: "Failed to fetch user" });
-  }
+app.get("/api/protected", requireRole("USER"), (req, res) => {
+  const auth = (req as any).auth();
+  const userId = auth.userId; // ✅ Clerk extracts it for you
+  console.log("Protected route accessed by user ID:", userId);
+  res.json({
+    success: true,
+    data: userId,
+    message: "Users fetched successfully",
+    error: null,
+  });
 });
 
 app.listen(PORT, () => {
