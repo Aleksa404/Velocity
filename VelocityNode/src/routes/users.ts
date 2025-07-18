@@ -1,9 +1,10 @@
 import { Router } from "express";
 import {
-  addTrainerRole,
   createUser,
   deleteUserbyEmail,
   getAllUsers,
+  getUserRole,
+  updateUserRole,
 } from "../controllers/userController";
 import { PrismaClient } from "@prisma/client";
 
@@ -20,6 +21,8 @@ router.post("/createUser", createUser);
 
 router.delete("/deleteUser/:email", deleteUserbyEmail);
 
-router.get("/addTrainerRole", addTrainerRole);
+router.patch("/role/:id", updateUserRole);
+
+router.get("/role/:id", getUserRole);
 
 export default router;

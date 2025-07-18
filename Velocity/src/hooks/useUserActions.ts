@@ -1,10 +1,13 @@
 import { useEffect } from "react";
 import { useUserStore } from "../stores/userStore";
 import { useUser } from "@clerk/clerk-react";
+import { getUserRole } from "../api/userApi";
+import { useAxiosAuth } from "./useAxiosAuth";
 
 export const useUserActions = () => {
-  const { setUser, updateUser, setIsLoading, setError, clearUser } =
+  const { user, setUser, updateUser, setIsLoading, setError, clearUser } =
     useUserStore();
+  const axios = useAxiosAuth();
 
   const { user: clerkUser, isLoaded } = useUser();
 
@@ -21,13 +24,14 @@ export const useUserActions = () => {
 
     setIsLoading(true);
     try {
+      //  const userRole = await getUserRole(axios, clerkUser.id);
       const userData = {
         id: clerkUser.id,
         email: clerkUser.emailAddresses[0]?.emailAddress || "",
         firstName: clerkUser.firstName || "",
         lastName: clerkUser.lastName || "",
         //TODO ADD DATABASE FETCHING FOR ROLE
-        role: "USER",
+        role: user?.role || undefined,
         createdAt: clerkUser.createdAt
           ? new Date(clerkUser.createdAt)
           : new Date(),
