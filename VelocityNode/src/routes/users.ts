@@ -1,6 +1,6 @@
 import { Router } from "express";
 import {
-  createUser,
+
   deleteUserbyEmail,
   getAllUsers,
   getUserRole,
@@ -17,7 +17,7 @@ router.get("/:id", (req, res) => {
   console.log(req.params.id);
 });
 
-router.post("/createUser", createUser);
+//router.post("/createUser", createUser);
 
 router.delete("/deleteUser/:email", deleteUserbyEmail);
 

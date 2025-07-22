@@ -27,6 +27,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  refreshTokens RefreshToken[]
+
   videos    Video[]
   workshops Workshop[]
 }
@@ -60,4 +62,14 @@ model Video {
   trainer    User      @relation(fields: [trainerId], references: [id])
   workshopId String?
   workshop   Workshop? @relation(fields: [workshopId], references: [id])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

@@ -7,6 +7,7 @@ import { clerkMiddleware } from "@clerk/express";
 import clerkRouter from "./routes/clerkWebhooks";
 import bodyParser from "body-parser";
 import { requireRole } from "./middleware/authMiddleware";
+import authRouter from "./routes/auth";
 
 const app = express();
 app.use(cors());
@@ -27,6 +28,8 @@ app.use(clerkMiddleware());
 
 //routes
 app.use("/api/users", usersRouter);
+
+app.use("/api/auth", authRouter);
 
 app.get("/trainer-endpoint", requireRole("TRAINER"), (req, res) => {
   res.json({ message: "Welcome, trainer!" });

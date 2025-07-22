@@ -14,21 +14,21 @@ export const getAllUsers = async (req: Request, res: Response) => {
   }
 };
 
-export const createUser = async (req: Request, res: Response) => {
-  const { name, email } = req.body;
-  try {
-    const newUser = await prisma.user.create({
-      data: {
-        name,
-        email,
-      },
-    });
+// export const createUser = async (req: Request, res: Response) => {
+//   const { name, email } = req.body;
+//   try {
+//     const newUser = await prisma.user.create({
+//       data: {
+//         name,
+//         email,
+//       },
+//     });
 
-    res.status(201).json(newUser);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to create user" });
-  }
-};
+//     res.status(201).json(newUser);
+//   } catch (error) {
+//     res.status(500).json({ error: "Failed to create user" });
+//   }
+// };
 
 export const deleteUserbyEmail = async (req: Request, res: Response) => {
   const { email } = req.params;
