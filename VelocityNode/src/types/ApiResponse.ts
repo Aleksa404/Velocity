@@ -2,5 +2,9 @@ export interface ApiResponse<T> {
   success: boolean;
   data: T | null;
   message?: string;
-  error?: string;
+  errors?: fieldError[];
+}
+export interface fieldError {
+  field: string;
+  message: string;
 }
