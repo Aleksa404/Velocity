@@ -16,7 +16,9 @@
   "dependencies": {
     "@clerk/express": "^1.7.5",
     "@prisma/client": "^6.11.1",
+    "@types/cookie-parser": "^1.4.9",
     "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
     "express": "^5.1.0",

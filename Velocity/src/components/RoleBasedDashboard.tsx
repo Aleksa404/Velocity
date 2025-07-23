@@ -1,11 +1,9 @@
 import React from "react";
 import { useUserStore } from "../stores/userStore";
-import { useAxiosAuth } from "../hooks/useAxiosAuth";
 
 export const RoleBasedDashboard = () => {
   const { user } = useUserStore();
   const role = user?.role;
-  const axiosAuth = useAxiosAuth();
 
   if (!user) return null;
 

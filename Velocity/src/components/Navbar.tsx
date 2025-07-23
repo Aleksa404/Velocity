@@ -1,20 +1,11 @@
 import Logo from "../assets/Logo.jpg";
-import { SignedIn, SignedOut, SignInButton } from "@clerk/clerk-react";
-import UserProfile from "./UserProfile";
 import RoleBasedDashboard from "./RoleBasedDashboard";
-import { useAxiosAuth } from "../hooks/useAxiosAuth";
+import { useUserStore } from "../stores/userStore";
 
 const Navbar = () => {
-  const axiosAuth = useAxiosAuth();
-
   const sendReq = async () => {
-    console.log("Send request function called");
-    try {
-      const res = await axiosAuth.get<any>("/protected");
-      console.log("Test function called", res.data);
-    } catch (error) {
-      console.error("Error in test function:", error);
-    }
+    const user = useUserStore.getState().user;
+    console.log(user);
     // You can send this token to your backend or use it as needed
   };
 
@@ -36,31 +27,7 @@ const Navbar = () => {
         </button>
         <RoleBasedDashboard />
 
-        <div className=" flex gap-4 max-sm:text-xs">
-          <SignedOut>
-            <SignInButton mode="modal">
-              <button className="bg-blue-600 text-white px-6 sm:px-9 py-2 rounded-full">
-                Sign In
-              </button>
-            </SignInButton>
-          </SignedOut>
-
-          <SignedIn>
-            {/* <UserButton afterSignOutUrl="/" /> */}
-            <UserProfile />
-          </SignedIn>
-
-          {/* {!user.isSignedIn ? (
-            <button className="text-gray-600">Login</button>
-          ) : (
-            <button
-              onClick={() => clerk.openSignIn({})}
-              className="bg-blue-600 text-white px-6 sm:px-9 py-2 rounded-full"
-            >
-              Login
-            </button>
-          )} */}
-        </div>
+        <div className=" flex gap-4 max-sm:text-xs"></div>
       </div>
     </div>
   );

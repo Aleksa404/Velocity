@@ -15,3 +15,7 @@ export interface RegisterUser {
   password: string;
   confirmPassword: string;
 }
+export interface LoginUser {
+  email: string;
+  password: string;
+}

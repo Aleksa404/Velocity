@@ -1,11 +1,14 @@
-/// <reference types="@clerk/express/env" />
-
 import { JwtPayload } from "jsonwebtoken";
+
+export type UserPayloadType = {
+  id: string;
+  email: string;
+};
 
 declare global {
   namespace Express {
     interface Request {
-      user?: string | JwtPayload; // Adjust type to your decoded token structure
+      user?: UserPayloadType; // Adjust type to your decoded token structure
     }
   }
 }

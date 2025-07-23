@@ -1,5 +1,5 @@
 import type { ApiResponse } from "../Types/Response";
-import axiosInstance from "./axiosInstance";
+import axiosInstance from "./axiosConfig";
 import type { User } from "../Types/User";
 
 export const getUserRole = async (userId: string) => {

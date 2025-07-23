@@ -1,9 +1,14 @@
 import { persist } from "zustand/middleware";
 import type { User } from "../Types/User";
 import { create } from "zustand";
+import axiosInstance, {
+  clearAuthData,
+  getAccessToken,
+} from "../api/axiosConfig";
 
 interface userState {
   user: User | null;
+  isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
 
@@ -11,7 +16,8 @@ interface userState {
   updateUser: (user: Partial<User>) => void;
   setIsLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
-  clearUser: () => void;
+  logout: () => void;
+  checkAuthStatus: () => Promise<void>;
 }
 
 export const useUserStore = create<userState>()(
@@ -19,11 +25,13 @@ export const useUserStore = create<userState>()(
     (set, get) => ({
       // Initial state
       user: null,
+      isAuthenticated: false,
       isLoading: false,
       error: null,
 
       // Actions
-      setUser: (user) => set({ user, error: null }),
+      setUser: (user: User | null) =>
+        set({ user, isAuthenticated: !!user, isLoading: false, error: null }),
 
       updateUser: (user) => {
         set((state) => ({
@@ -34,7 +42,40 @@ export const useUserStore = create<userState>()(
 
       setIsLoading: (isLoading) => set({ isLoading }),
       setError: (error) => set({ error }),
-      clearUser: () => set({ user: null, isLoading: false, error: null }),
+      logout: () => {
+        set({
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+          error: null,
+        });
+        clearAuthData();
+      },
+      checkAuthStatus: async () => {
+        const token = getAccessToken();
+        if (!token) {
+          set({ user: null, isAuthenticated: false, isLoading: false });
+          return;
+        }
+
+        set({ isLoading: true });
+        try {
+          const response = await axiosInstance.get<{ user: User }>("/users/me");
+          set({
+            user: response.data.user,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } catch (error: any) {
+          set({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: error?.message as string | null,
+          });
+          clearAuthData();
+        }
+      },
     }),
     {
       name: "user-storage", // Unique name for the storage

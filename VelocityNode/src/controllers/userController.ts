@@ -107,3 +107,17 @@ export const updateUserRole = async (
     res.status(500).json(response);
   }
 };
+
+export const getCurrentUser = async (req: Request, res: Response) => {
+  console.log("ovde");
+  try {
+    const { id } = req.user!;
+    if (!id) {
+      return res.status(401).json({ message: "Unauthorized: Missing userId" });
+    }
+    const currentUser = await prisma.user.findUnique({ where: { id } });
+    return res.status(200).json(currentUser);
+  } catch (error) {
+    return res.status(500).json("internal server error");
+  }
+};

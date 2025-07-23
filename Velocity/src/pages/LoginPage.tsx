@@ -7,6 +7,7 @@ import {
   CheckCircle,
   AlertCircle,
 } from "lucide-react";
+import { login } from "../api/authApi";
 
 // Zod-like validation (since we can't import zod directly)
 interface ValidationError {
@@ -49,14 +50,14 @@ const LoginPage: React.FC = () => {
     }
 
     // Password validation
-    if (!data.password) {
-      errors.push({ field: "password", message: "Password is required" });
-    } else if (data.password.length < 6) {
-      errors.push({
-        field: "password",
-        message: "Password must be at least 6 characters",
-      });
-    }
+    //   if (!data.password) {
+    //     errors.push({ field: "password", message: "Password is required" });
+    //   } else if (data.password.length < 6) {
+    //     errors.push({
+    //       field: "password",
+    //       message: "Password must be at least 6 characters",
+    //     });
+    //   }
 
     return errors;
   };
@@ -83,7 +84,7 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setLoginError("");
@@ -96,28 +97,29 @@ const LoginPage: React.FC = () => {
       return;
     }
 
-    // Simulate API call with potential failure
-    setTimeout(() => {
-      setIsSubmitting(false);
-
-      // Simulate login logic - fail if password is "wrong"
-      if (formData.password === "wrong") {
-        setLoginError("Invalid email or password. Please try again.");
-        return;
+    try {
+      const result = await login(formData);
+      console.log(result);
+      if (!result.success) {
+        console.log(result);
+        setErrors([
+          {
+            field: "api",
+            message: result.message ?? "wrong email/password",
+          },
+        ]);
       }
 
-      // Success
-      setIsSuccess(true);
+      setIsSubmitting(false);
+      return;
+    } catch (error: any) {
+      console.log(error);
+      setErrors([{ field: "api", message: `Registration failedeee ${error}` }]);
+      setIsSubmitting(false);
       // Reset form after success
-      setTimeout(() => {
-        setIsSuccess(false);
-        setFormData({
-          email: "",
-          password: "",
-          rememberMe: false,
-        });
-      }, 2000);
-    }, 1500);
+    }
+
+    // Simulate API call with potential failure
   };
 
   if (isSuccess) {
