@@ -5,6 +5,7 @@ import App from "./App.tsx";
 import { createBrowserRouter, Router, RouterProvider } from "react-router";
 import RegisterPage from "./pages/RegisterPage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
+import AdminDashboard from "./components/Dashboard/AdminDashboard.tsx";
 
 const router = createBrowserRouter([
   {
@@ -14,6 +15,7 @@ const router = createBrowserRouter([
       { path: "", element: <div>home</div> },
       { path: "register", element: <RegisterPage /> },
       { path: "login", element: <LoginPage /> },
+      { path: "adminDashboard", element: <AdminDashboard /> },
     ],
   },
 ]);

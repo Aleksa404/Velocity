@@ -13,4 +13,19 @@ export const setAccessToken = (token: string, user?: User): void => {
   if (user) {
     useUserStore.getState().setUser(user);
   }
+  console.log(
+    `access token and user set as ${token} and user ${user?.firstName}`
+  );
+};
+
+export const clearAuthData = (): void => {
+  accessToken = null;
+  localStorage.removeItem("accessToken");
+  if (axiosInstance.defaults.headers.common) {
+    delete axiosInstance.defaults.headers.common["Authorization"];
+  }
+};
+
+export const getAccessToken = (): string | null => {
+  return accessToken;
 };

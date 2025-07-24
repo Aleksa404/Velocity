@@ -20,10 +20,9 @@ interface RefreshTokenResponse {
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
-// Create axios instance
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL as string, // Your backend URL
-  withCredentials: true, // Important: This sends cookies with requests
+  baseURL: import.meta.env.VITE_API_URL as string,
+  withCredentials: true, //This sends cookies with requests
   timeout: 10000,
 });
 
@@ -100,7 +99,7 @@ axiosInstance.interceptors.response.use(
         const url = import.meta.env.VITE_API_URL as string;
         const response = await axios.post<RefreshTokenResponse>(
           `${url}/auth/refresh`,
-          {}, // Empty body since refresh token is in cookie
+          {},
           { withCredentials: true }
         );
 
@@ -157,16 +156,5 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-export const clearAuthData = (): void => {
-  accessToken = null;
-  localStorage.removeItem("accessToken");
-  if (axiosInstance.defaults.headers.common) {
-    delete axiosInstance.defaults.headers.common["Authorization"];
-  }
-};
-
-export const getAccessToken = (): string | null => {
-  return accessToken;
-};
 
 export default axiosInstance;

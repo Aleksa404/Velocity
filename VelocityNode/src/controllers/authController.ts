@@ -1,7 +1,11 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { PrismaClient } from "@prisma/client";
-import { ApiResponse } from "../types/ApiResponse";
+import {
+  ApiResponse,
+  UserLoginResponse,
+  UserTokenResponse,
+} from "../types/ApiResponse";
 import { User } from "../types/User";
 import { registerUserSchema } from "../utils/authValidation.schema";
 import {
@@ -9,6 +13,7 @@ import {
   generateRefreshToken,
   rotateRefreshToken,
 } from "../utils/generateToken";
+import { success } from "zod";
 
 const prisma = new PrismaClient();
 
@@ -45,10 +50,21 @@ export const registerUser = async (req: Request, res: Response) => {
       password: hashedPassword,
       first_name: req.body.firstName,
       last_name: req.body.lastName || "",
+      role: "USER",
     },
   });
   const accessToken = generateAccessToken({ id: user.id, email: user.email });
   const refreshToken = await generateRefreshToken(user.id);
+
+  const responseUser: UserLoginResponse = {
+    id: user.id,
+    email: user.email,
+    firstName: user?.first_name,
+    lastName: user?.last_name,
+    role: user?.role,
+    createdAt: user?.createdAt,
+    updatedAt: user?.updatedAt,
+  };
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
@@ -59,10 +75,11 @@ export const registerUser = async (req: Request, res: Response) => {
 
   return res.status(201).json({
     success: true,
-    data: { accessToken, user: { id: user.id, email: user.email } },
+    data: { accessToken, user: responseUser },
     message: "User registered successfully",
   });
 };
+
 export const loginUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
@@ -72,6 +89,16 @@ export const loginUser = async (req: Request, res: Response) => {
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
 
+  const responseUser: UserLoginResponse = {
+    id: user.id,
+    email: user.email,
+    firstName: user?.first_name,
+    lastName: user?.last_name,
+    role: user?.role,
+    createdAt: user?.createdAt,
+    updatedAt: user?.updatedAt,
+  };
+
   const accessToken = generateAccessToken({ id: user.id, email: user.email });
   const refreshToken = await generateRefreshToken(user.id);
 
@@ -79,22 +106,37 @@ export const loginUser = async (req: Request, res: Response) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
   return res.status(200).json({
     success: true,
-    data: { accessToken, user: user },
+    data: { accessToken, user: responseUser },
     message: "Login successful",
   });
 };
 
 export const logout = async (req: Request, res: Response) => {
-  const { refreshToken } = req.body;
-  if (refreshToken) {
-    await prisma.refreshToken.deleteMany({ where: { token: refreshToken } });
+  try {
+    const { refreshToken } = req.cookies.refreshToken;
+    if (refreshToken) {
+      await prisma.refreshToken.deleteMany({ where: { token: refreshToken } });
+    }
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
+    return res
+      .status(204)
+      .json({ success: true, message: "Logged out successfully" });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
-  res.status(204).send();
 };
 
 export const refresh = async (req: Request, res: Response) => {
@@ -109,7 +151,6 @@ export const refresh = async (req: Request, res: Response) => {
       refreshToken
     );
 
-    // Get user info for consistent payload
     const user = await prisma.user.findUnique({ where: { id: userId } });
     const accessToken = generateAccessToken({
       id: userId,
@@ -117,12 +158,11 @@ export const refresh = async (req: Request, res: Response) => {
       role: user?.role,
     });
 
-    // Set new refresh token cookie
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 30 * 24 * 60 * 60 * 1000, //30 days
     });
 
     res.json({ accessToken });

@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
-import { ApiResponse } from "../types/ApiResponse";
-import { Role } from "../types/Role";
+import { ApiResponse, UserLoginResponse } from "../types/ApiResponse";
 
 const prisma = new PrismaClient();
 
@@ -13,22 +12,6 @@ export const getAllUsers = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to fetch users" });
   }
 };
-
-// export const createUser = async (req: Request, res: Response) => {
-//   const { name, email } = req.body;
-//   try {
-//     const newUser = await prisma.user.create({
-//       data: {
-//         name,
-//         email,
-//       },
-//     });
-
-//     res.status(201).json(newUser);
-//   } catch (error) {
-//     res.status(500).json({ error: "Failed to create user" });
-//   }
-// };
 
 export const deleteUserbyEmail = async (req: Request, res: Response) => {
   const { email } = req.params;
@@ -116,7 +99,17 @@ export const getCurrentUser = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Unauthorized: Missing userId" });
     }
     const currentUser = await prisma.user.findUnique({ where: { id } });
-    return res.status(200).json(currentUser);
+    if (!currentUser) return res.status(404).json("user not found");
+    const responseUser: UserLoginResponse = {
+      id: currentUser.id,
+      email: currentUser.email,
+      firstName: currentUser?.first_name,
+      lastName: currentUser?.last_name,
+      role: currentUser?.role,
+      createdAt: currentUser?.createdAt,
+      updatedAt: currentUser?.updatedAt,
+    };
+    return res.status(200).json(responseUser);
   } catch (error) {
     return res.status(500).json("internal server error");
   }

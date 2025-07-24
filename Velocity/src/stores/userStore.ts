@@ -1,10 +1,8 @@
 import { persist } from "zustand/middleware";
 import type { User } from "../Types/User";
 import { create } from "zustand";
-import axiosInstance, {
-  clearAuthData,
-  getAccessToken,
-} from "../api/axiosConfig";
+import axiosInstance from "../api/axiosConfig";
+import { clearAuthData, getAccessToken } from "../service/tokenService";
 
 interface userState {
   user: User | null;

@@ -2,8 +2,7 @@ import "dotenv/config";
 import express from "express";
 import usersRouter from "./routes/users";
 import cors from "cors";
-import { PrismaClient } from "@prisma/client";
-import { authenticateToken, requireRole } from "./middleware/authMiddleware";
+import { authenticateToken } from "./middleware/authMiddleware";
 import authRouter from "./routes/auth";
 import cookieParser from "cookie-parser";
 
@@ -16,8 +15,6 @@ app.use(
 );
 
 const PORT = process.env.PORT || 5000;
-
-const prisma = new PrismaClient();
 
 // Middleware
 app.use(express.json());
