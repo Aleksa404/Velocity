@@ -2,7 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
-import { createBrowserRouter, Router, RouterProvider } from "react-router";
+import { createBrowserRouter, RouterProvider } from "react-router";
 import RegisterPage from "./pages/RegisterPage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import AdminDashboard from "./components/Dashboard/AdminDashboard.tsx";

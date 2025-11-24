@@ -1,6 +1,6 @@
 import axiosInstance from "./axiosConfig";
 import type { ApiResponse, UserTokenResponse } from "../Types/Response";
-import type { LoginUser, RegisterUser, User } from "../Types/User";
+import type { LoginUser, RegisterUser } from "../Types/User";
 import { setAccessToken } from "../service/tokenService";
 import { useUserStore } from "../stores/userStore";
 

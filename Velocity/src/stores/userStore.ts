@@ -20,7 +20,7 @@ interface userState {
 
 export const useUserStore = create<userState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       // Initial state
       user: null,
       isAuthenticated: false,

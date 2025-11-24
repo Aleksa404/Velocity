@@ -1,7 +1,5 @@
-import React from "react";
 import { useUserStore } from "../stores/userStore";
-import AdminDashboard from "./Dashboard/AdminDashboard";
-import { Navigate, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 
 export const RoleBasedDashboard = () => {
   const user = useUserStore((state) => state.user);

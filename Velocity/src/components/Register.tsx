@@ -1,148 +1,86 @@
-import React, { useState } from "react";
-import {
-  Eye,
-  EyeOff,
-  User,
-  Mail,
-  Lock,
-  CheckCircle,
-  AlertCircle,
-} from "lucide-react";
-import type { RegisterUser } from "../Types/User";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { signup } from "../api/authApi";
 import { useNavigate } from "react-router";
+import ReCAPTCHA from "react-google-recaptcha";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
-interface ValidationError {
-  field: string;
-  message: string;
-}
-
-const RegisterPage: React.FC = () => {
-  const [formData, setFormData] = useState<RegisterUser>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+const registerSchema = z
+  .object({
+    firstName: z.string().min(2, { message: "First name must be at least 2 characters" }),
+    lastName: z.string().min(2, { message: "Last name must be at least 2 characters" }),
+    email: z.string().email({ message: "Please enter a valid email address" }),
+    password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters" })
+      .regex(/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
+        message: "Password must contain uppercase, lowercase, and number",
+      }),
+    confirmPassword: z.string(),
+    captchaToken: z.string().min(1, { message: "Please complete the captcha" }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
   });
 
-  const [errors, setErrors] = useState<ValidationError[]>([]);
+type RegisterFormValues = z.infer<typeof registerSchema>;
+
+const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [registerError, setRegisterError] = useState<string>("");
   const [isSuccess, setIsSuccess] = useState(false);
-
   const navigate = useNavigate();
 
-  const validateForm = (data: RegisterUser): ValidationError[] => {
-    const errors: ValidationError[] = [];
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      captchaToken: "",
+    },
+  });
 
-    // First name validation
-    if (!data.firstName.trim()) {
-      errors.push({ field: "firstName", message: "First name is required" });
-    } else if (data.firstName.length < 2) {
-      errors.push({
-        field: "firstName",
-        message: "First name must be at least 2 characters",
-      });
-    }
-
-    // Last name validation
-    if (!data.lastName.trim()) {
-      errors.push({ field: "lastName", message: "Last name is required" });
-    } else if (data.lastName.length < 2) {
-      errors.push({
-        field: "lastName",
-        message: "Last name must be at least 2 characters",
-      });
-    }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!data.email.trim()) {
-      errors.push({ field: "email", message: "Email is required" });
-    } else if (!emailRegex.test(data.email)) {
-      errors.push({
-        field: "email",
-        message: "Please enter a valid email address",
-      });
-    }
-
-    // Password validation
-    if (!data.password) {
-      errors.push({ field: "password", message: "Password is required" });
-    } else if (data.password.length < 8) {
-      errors.push({
-        field: "password",
-        message: "Password must be at least 8 characters",
-      });
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(data.password)) {
-      errors.push({
-        field: "password",
-        message: "Password must contain uppercase, lowercase, and number",
-      });
-    }
-
-    // Confirm password validation
-    if (!data.confirmPassword) {
-      errors.push({
-        field: "confirmPassword",
-        message: "Please confirm your password",
-      });
-    } else if (data.password !== data.confirmPassword) {
-      errors.push({
-        field: "confirmPassword",
-        message: "Passwords do not match",
-      });
-    }
-
-    return errors;
-  };
-
-  const getFieldError = (fieldName: string): string | undefined => {
-    return errors.find((error) => error.field === fieldName)?.message;
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-
-    // Clear field-specific error when user starts typing
-    if (errors.some((error) => error.field === name)) {
-      setErrors((prev) => prev.filter((error) => error.field !== name));
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    const validationErrors = validateForm(formData);
-
-    if (validationErrors.length > 0) {
-      setErrors(validationErrors);
-      setIsSubmitting(false);
-      return;
-    }
+  const onSubmit = async (data: RegisterFormValues) => {
+    setRegisterError("");
     try {
-      const result = await signup(formData);
-      console.log(result);
-      if (!result.success) {
-        console.log(result);
-        if (result.message === "Email already exists") {
-          setErrors([
-            { field: "email", message: "This email is already registered" },
-          ]);
-        } else {
-          setErrors([
-            {
-              field: "api",
-              message: result.message ?? "An unknown error occurred",
-            },
-          ]);
-        }
+      // Remove captchaToken before sending to backend if backend doesn't expect it yet
+      // Or keep it if backend verifies it. For now, we assume backend might not handle it, 
+      // but we validated it on client side.
+      const { captchaToken, ...signupData } = data;
 
-        setIsSubmitting(false);
+      const result = await signup(signupData);
+
+      if (!result.success) {
+        if (result.message === "Email already exists") {
+          form.setError("email", { message: "This email is already registered" });
+        } else {
+          setRegisterError(result.message ?? "An unknown error occurred");
+        }
         return;
       }
 
@@ -151,271 +89,233 @@ const RegisterPage: React.FC = () => {
         navigate("/");
       }, 1000);
     } catch (error: any) {
-      console.log(error);
-      setErrors([{ field: "api", message: `Registration failedeee ${error}` }]);
-      setIsSubmitting(false);
+      console.error(error);
+      setRegisterError("An unexpected error occurred. Please try again.");
     }
   };
 
-  if (isSuccess) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-8 h-8 text-green-600" />
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      {isSuccess ? (
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6 text-center">
+            <div className="mb-4 flex justify-center">
+              <div className="rounded-full bg-green-100 p-3">
+                <svg
+                  className="h-6 w-6 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 13l4 4L19 7"
+                  ></path>
+                </svg>
+              </div>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Welcome aboard!
-            </h2>
-            <p className="text-gray-600">
+            <h2 className="text-2xl font-bold text-gray-900">Welcome aboard!</h2>
+            <p className="mt-2 text-gray-600">
               Your account has been created successfully.
             </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-center">
-            <h1 className="text-2xl font-bold text-white mb-2">
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">
               Create Account
-            </h1>
-            <p className="text-indigo-100">Join us today and get started</p>
-          </div>
-
-          {/* Form */}
-          <div className="p-6 space-y-4">
-            {/* Name Fields */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label
-                  htmlFor="firstName"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  First Name
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    id="firstName"
+            </CardTitle>
+            <CardDescription className="text-center">
+              Join us today and get started
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {registerError && (
+              <div className="mb-4 rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+                {registerError}
+              </div>
+            )}
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
                     name="firstName"
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
-                      getFieldError("firstName")
-                        ? "border-red-500 bg-red-50"
-                        : "border-gray-300"
-                    }`}
-                    placeholder="John"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="John" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Doe" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
                 </div>
-                {getFieldError("firstName") && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {getFieldError("firstName")}
-                  </p>
-                )}
-              </div>
 
-              <div>
-                <label
-                  htmlFor="lastName"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Last Name
-                </label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
-                    getFieldError("lastName")
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-300"
-                  }`}
-                  placeholder="Doe"
-                />
-                {getFieldError("lastName") && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {getFieldError("lastName")}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Email */}
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="email"
-                  id="email"
+                <FormField
+                  control={form.control}
                   name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
-                    getFieldError("email")
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-300"
-                  }`}
-                  placeholder="john.doe@example.com"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="name@example.com"
+                          type="email"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              {getFieldError("email") && (
-                <p className="text-red-500 text-xs mt-1">
-                  {getFieldError("email")}
-                </p>
-              )}
-            </div>
 
-            {/* Password */}
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  id="password"
+                <FormField
+                  control={form.control}
                   name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className={`w-full pl-10 pr-10 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
-                    getFieldError("password")
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-300"
-                  }`}
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="••••••••"
+                            {...field}
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <Eye className="h-4 w-4 text-muted-foreground" />
+                            )}
+                            <span className="sr-only">
+                              {showPassword ? "Hide password" : "Show password"}
+                            </span>
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </button>
-              </div>
-              {getFieldError("password") && (
-                <p className="text-red-500 text-xs mt-1">
-                  {getFieldError("password")}
-                </p>
-              )}
-            </div>
+                />
 
-            {/* Confirm Password */}
-            <div>
-              <label
-                htmlFor="confirmPassword"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Confirm Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  id="confirmPassword"
+                <FormField
+                  control={form.control}
                   name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className={`w-full pl-10 pr-10 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
-                    getFieldError("confirmPassword")
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-300"
-                  }`}
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showConfirmPassword ? "text" : "password"}
+                            placeholder="••••••••"
+                            {...field}
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() =>
+                              setShowConfirmPassword(!showConfirmPassword)
+                            }
+                          >
+                            {showConfirmPassword ? (
+                              <EyeOff className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <Eye className="h-4 w-4 text-muted-foreground" />
+                            )}
+                            <span className="sr-only">
+                              {showConfirmPassword
+                                ? "Hide password"
+                                : "Show password"}
+                            </span>
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </button>
-              </div>
-              {getFieldError("confirmPassword") && (
-                <p className="text-red-500 text-xs mt-1">
-                  {getFieldError("confirmPassword")}
-                </p>
-              )}
-            </div>
+                />
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className={`w-full py-3 px-4 rounded-lg text-white font-medium transition-all duration-200 ${
-                isSubmitting
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
-              }`}
-            >
-              {isSubmitting ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                  Creating Account...
-                </div>
-              ) : (
-                "Create Account"
-              )}
-            </button>
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm"></div>
-            </div>
+                <FormField
+                  control={form.control}
+                  name="captchaToken"
+                  render={({ field }) => (
+                    <FormItem className="flex justify-center">
+                      <FormControl>
+                        <ReCAPTCHA
+                          sitekey={
+                            import.meta.env.VITE_RECAPTCHA_SITE_KEY ||
+                            "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+                          } // Test key
+                          onChange={(token) => field.onChange(token)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            {/* Login Link */}
-            <div className="text-center pt-4">
-              <p className="text-sm text-gray-600">
-                Already have an account?{" "}
-                <a
-                  href="/login"
-                  className="text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={form.formState.isSubmitting}
                 >
-                  Sign in
-                </a>
-              </p>
+                  {form.formState.isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating Account...
+                    </>
+                  ) : (
+                    "Create Account"
+                  )}
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+          <CardFooter className="flex justify-center text-sm text-muted-foreground">
+            <div>
+              Already have an account?{" "}
+              <a
+                href="/login"
+                className="font-medium text-primary underline-offset-4 hover:underline"
+              >
+                Sign in
+              </a>
             </div>
-          </div>
-        </div>
-        {errors.some((error) => error.field === "api") && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center">
-            <AlertCircle className="w-4 h-4 text-red-500 mr-2 flex-shrink-0" />
-            <p className="text-red-700 text-sm">
-              {errors.find((error) => error.field === "api")?.message}
-            </p>
-          </div>
-        )}
-      </div>
+          </CardFooter>
+        </Card>
+      )}
     </div>
   );
 };

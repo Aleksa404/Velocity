@@ -2,7 +2,7 @@ import { Navigate } from "react-router";
 import Register from "../components/Register";
 import { useUserStore } from "../stores/userStore";
 
-const LoginPage = () => {
+const RegisterPage = () => {
   const user = useUserStore((state) => state.user);
 
   if (user) {
@@ -10,4 +10,4 @@ const LoginPage = () => {
   } else return <Register />;
 };
 
-export default LoginPage;
+export default RegisterPage;
