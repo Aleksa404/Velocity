@@ -16,12 +16,15 @@
   "dependencies": {
     "@prisma/client": "^6.11.1",
     "@types/cookie-parser": "^1.4.9",
+    "@types/multer": "^2.0.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
+    "googleapis": "^166.0.0",
     "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
     "prisma": "^6.11.1",
     "svix": "^1.69.0",
     "zod": "^4.0.5"

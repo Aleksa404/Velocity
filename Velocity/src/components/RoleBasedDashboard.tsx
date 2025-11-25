@@ -1,28 +1,28 @@
 import { useUserStore } from "../stores/userStore";
-import { useNavigate } from "react-router";
+import AdminDashboard from "./Dashboard/AdminDashboard";
+import TrainerDashboard from "./Dashboard/TrainerDashboard";
+import { Navigate } from "react-router";
 
-export const RoleBasedDashboard = () => {
+const RoleBasedDashboard = () => {
   const user = useUserStore((state) => state.user);
-  const role = user?.role;
 
-  const navigate = useNavigate();
-  if (!user) return null;
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  if (user.role === "ADMIN") {
+    return <AdminDashboard />;
+  }
+
+  if (user.role === "TRAINER") {
+    return <TrainerDashboard />;
+  }
 
   return (
-    <>
-      <div>
-        {role === "ADMIN" && (
-          <button
-            className="bg-blue-400 text-white px-6 sm:px-9 py-2 rounded-full"
-            onClick={() => navigate("/adminDashboard")}
-          >
-            Dashboard
-          </button>
-        )}
-        {role === "TRAINER" && <div>Trainer Dashboard</div>}
-        {role === "USER" && <div>User Dashboard</div>}
-      </div>
-    </>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold">User Dashboard</h1>
+      <p>Welcome, {user.firstName}!</p>
+    </div>
   );
 };
 
