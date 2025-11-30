@@ -19,6 +19,18 @@ enum Role {
   ADMIN
 }
 
+enum RequestStatus {
+  PENDING
+  APPROVED
+  DENIED
+}
+
+enum EnrollmentStatus {
+  PENDING
+  APPROVED
+  DENIED
+}
+
 model User {
   id         String   @id @default(cuid())
   first_name String
@@ -30,9 +42,25 @@ model User {
   updatedAt  DateTime @updatedAt
 
   refreshTokens RefreshToken[]
+  trainerRequests TrainerRequest[]
+  following Follow[] @relation("UserFollows")
+  followers Follow[] @relation("TrainerFollowers")
+  workshopEnrollments WorkshopEnrollment[]
 
   videos    Video[]
   workshops Workshop[]
+}
+
+model TrainerRequest {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    RequestStatus @default(PENDING)
+  message   String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([userId, status])
 }
 
 model Program {
@@ -46,12 +74,14 @@ model Workshop {
   title       String
   description String
   date        DateTime
+  capacity    Int?     // Optional max participants
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   trainerId String
   trainer   User    @relation(fields: [trainerId], references: [id])
   videos    Video[]
+  enrollments WorkshopEnrollment[]
 }
 
 model Video {
@@ -74,4 +104,30 @@ model RefreshToken {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Follow {
+  id        String   @id @default(cuid())
+  userId    String   // The follower
+  trainerId String   // The trainer being followed
+  createdAt DateTime @default(now())
+
+  user    User @relation("UserFollows", fields: [userId], references: [id], onDelete: Cascade)
+  trainer User @relation("TrainerFollowers", fields: [trainerId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, trainerId])
+}
+
+model WorkshopEnrollment {
+  id         String           @id @default(cuid())
+  userId     String
+  workshopId String
+  status     EnrollmentStatus @default(PENDING)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workshop Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workshopId])
 }

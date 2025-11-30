@@ -6,6 +6,9 @@ import { authenticateToken } from "./middleware/authMiddleware";
 import authRouter from "./routes/auth";
 import cookieParser from "cookie-parser";
 import videoRouter from "./routes/videos";
+import trainerRequestRouter from "./routes/trainerRequests";
+import trainerRouter from "./routes/trainers";
+import workshopRouter from "./routes/workshops";
 
 const app = express();
 app.use(
@@ -27,6 +30,9 @@ app.use(cookieParser());
 app.use("/api/auth", authRouter);
 app.use("/api/users", authenticateToken, usersRouter);
 app.use("/api/videos", videoRouter);
+app.use("/api/trainer-requests", trainerRequestRouter);
+app.use("/api/trainers", trainerRouter);
+app.use("/api/workshops", workshopRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

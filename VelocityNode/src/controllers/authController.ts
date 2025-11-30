@@ -53,7 +53,11 @@ export const registerUser = async (req: Request, res: Response) => {
       role: "USER",
     },
   });
-  const accessToken = generateAccessToken({ id: user.id, email: user.email });
+  const accessToken = generateAccessToken({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+  });
   const refreshToken = await generateRefreshToken(user.id);
 
   const responseUser: UserLoginResponse = {
@@ -99,7 +103,11 @@ export const loginUser = async (req: Request, res: Response) => {
     updatedAt: user?.updatedAt,
   };
 
-  const accessToken = generateAccessToken({ id: user.id, email: user.email });
+  const accessToken = generateAccessToken({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+  });
   const refreshToken = await generateRefreshToken(user.id);
 
   res.cookie("refreshToken", refreshToken, {

@@ -5,9 +5,15 @@ import App from "./App.tsx";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import RegisterPage from "./pages/RegisterPage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
-import AdminDashboard from "./components/Dashboard/AdminDashboard.tsx";
-import PostVideoPage from "./pages/PostVideoPage.tsx";
+import AdminDashboard from "./components/Admin/AdminDashboard.tsx";
 import RoleBasedDashboard from "./components/RoleBasedDashboard.tsx";
+import ProfilePage from "./pages/ProfilePage.tsx";
+import TrainersPage from "./pages/TrainersPage.tsx";
+import TrainerProfilePage from "./pages/TrainerProfilePage.tsx";
+import WorkshopsPage from "./pages/WorkshopsPage.tsx";
+import WorkshopDetailPage from "./pages/WorkshopDetailPage.tsx";
+import CreateWorkshopPage from "./pages/CreateWorkshopPage.tsx";
+import WorkshopManagementPage from "./pages/WorkshopManagementPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -17,8 +23,14 @@ const router = createBrowserRouter([
       { path: "", element: <RoleBasedDashboard /> },
       { path: "register", element: <RegisterPage /> },
       { path: "login", element: <LoginPage /> },
+      { path: "profile", element: <ProfilePage /> },
       { path: "adminDashboard", element: <AdminDashboard /> },
-      { path: "trainer/post-video", element: <PostVideoPage /> },
+      { path: "trainers", element: <TrainersPage /> },
+      { path: "trainers/:id", element: <TrainerProfilePage /> },
+      { path: "workshops", element: <WorkshopsPage /> },
+      { path: "workshops/create", element: <CreateWorkshopPage /> },
+      { path: "workshops/:id", element: <WorkshopDetailPage /> },
+      { path: "workshops/:id/manage", element: <WorkshopManagementPage /> },
     ],
   },
 ]);

@@ -31,9 +31,10 @@ type VideoFormValues = z.infer<typeof videoSchema>;
 
 interface VideoFormProps {
     onVideoPosted: () => void;
+    workshopId?: string;
 }
 
-const VideoForm = ({ onVideoPosted }: VideoFormProps) => {
+const VideoForm = ({ onVideoPosted, workshopId }: VideoFormProps) => {
     const form = useForm<VideoFormValues>({
         resolver: zodResolver(videoSchema),
         defaultValues: {
@@ -46,6 +47,9 @@ const VideoForm = ({ onVideoPosted }: VideoFormProps) => {
             const formData = new FormData();
             formData.append("title", data.title);
             formData.append("video", data.video[0]);
+            if (workshopId) {
+                formData.append("workshopId", workshopId);
+            }
 
             const result = await createVideo(formData);
             if (result.success) {

@@ -40,7 +40,7 @@ export const createVideo = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "No video file provided" });
         }
 
-        const { title } = req.body;
+        const { title, workshopId } = req.body;
         if (!title) {
             return res.status(400).json({ message: "Title is required" });
         }
@@ -53,7 +53,7 @@ export const createVideo = async (req: Request, res: Response) => {
             requestBody: {
                 snippet: {
                     title: title,
-                    description: `Uploaded by trainer via Velocity Platform`,
+                    description: `Uploaded by trainer via Velocity Platform${workshopId ? ` for workshop ${workshopId}` : ''}`,
                 },
                 status: {
                     privacyStatus: "unlisted", // Default to unlisted
@@ -75,6 +75,7 @@ export const createVideo = async (req: Request, res: Response) => {
                 title,
                 url: youtubeUrl,
                 trainerId: userId,
+                workshopId: workshopId || null,
             },
         });
 

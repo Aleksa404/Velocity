@@ -1,6 +1,6 @@
 import { useUserStore } from "../stores/userStore";
-import AdminDashboard from "./Dashboard/AdminDashboard";
-import TrainerDashboard from "./Dashboard/TrainerDashboard";
+import AdminDashboard from "./Admin/AdminDashboard";
+import TrainerDashboard from "./Trainer/TrainerDashboard";
 import { Navigate } from "react-router";
 
 const RoleBasedDashboard = () => {

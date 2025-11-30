@@ -17,17 +17,46 @@ export const authenticateToken = (
 
   const token = authHeader.split(" ")[1];
   try {
-    console.log(token);
+    console.log("Verifying token:", token);
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
     if (typeof decoded === "string") {
       return res.status(401).json({ message: "Invalid token payload" });
     }
     req.user = decoded as UserPayloadType;
-    console.log(decoded);
+    console.log("Token verified successfully:", decoded);
     next();
-    console.log("after next");
-  } catch {
-    return res.sendStatus(403);
+  } catch (error: any) {
+    console.error("JWT verification failed:", error.message);
+    console.error("Token that failed:", token);
+    console.error("JWT_SECRET exists:", !!process.env.JWT_SECRET);
+    return res.status(401).json({
+      message: "Invalid or expired token",
+      error: error.message
+    });
+  }
+};
+
+export const optionalAuthenticateToken = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const authHeader = req.headers["authorization"];
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return next();
+  }
+
+  const token = authHeader.split(" ")[1];
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
+    if (typeof decoded !== "string") {
+      req.user = decoded as UserPayloadType;
+    }
+    next();
+  } catch (error) {
+    // If token is invalid, just proceed without user info
+    next();
   }
 };
 

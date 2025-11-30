@@ -3,6 +3,7 @@ import { JwtPayload } from "jsonwebtoken";
 export type UserPayloadType = {
   id: string;
   email: string;
+  role: string;
 };
 
 declare global {
