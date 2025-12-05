@@ -70,3 +70,15 @@ export const denyEnrollment = async (enrollmentId: string) => {
     const response = await axiosInstance.patch<ApiResponse<WorkshopEnrollment>>(`/workshops/enrollments/${enrollmentId}/deny`);
     return response.data;
 };
+
+// Get user's enrolled workshops
+export const getUserEnrollments = async () => {
+    const response = await axiosInstance.get<ApiResponse<WorkshopEnrollment[]>>("/workshops/my/enrollments");
+    return response.data;
+};
+
+// Unenroll from a workshop
+export const unenrollFromWorkshop = async (workshopId: string) => {
+    const response = await axiosInstance.delete<ApiResponse<null>>(`/workshops/${workshopId}/enroll`);
+    return response.data;
+};

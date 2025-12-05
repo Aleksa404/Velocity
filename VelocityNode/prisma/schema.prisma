@@ -46,6 +46,7 @@ model User {
   following Follow[] @relation("UserFollows")
   followers Follow[] @relation("TrainerFollowers")
   workshopEnrollments WorkshopEnrollment[]
+  videoWatchProgress VideoWatchProgress[]
 
   videos    Video[]
   workshops Workshop[]
@@ -88,12 +89,39 @@ model Video {
   id         String   @id @default(cuid())
   title      String
   url        String
+  duration   Int?     // Duration in seconds
   uploadedAt DateTime @default(now())
 
   trainerId  String
   trainer    User      @relation(fields: [trainerId], references: [id])
-  workshopId String?
-  workshop   Workshop? @relation(fields: [workshopId], references: [id])
+  workshopId String
+  workshop   Workshop  @relation(fields: [workshopId], references: [id])
+  
+  watchProgress VideoWatchProgress[]
+}
+
+model VideoWatchProgress {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videoId         String
+  video           Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  
+  // Progress tracking
+  watchedSeconds  Int      @default(0)  // Current position in seconds
+  totalDuration   Int?     // Total video duration (cached)
+  percentWatched  Int      @default(0)  // 0-100
+  
+  // Status
+  isCompleted     Boolean  @default(false)  // true when >95% watched
+  
+  // Timestamps
+  lastWatchedAt   DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, videoId])
+  @@index([userId, lastWatchedAt])
 }
 
 model RefreshToken {

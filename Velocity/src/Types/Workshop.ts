@@ -1,3 +1,5 @@
+import type { Video } from "./Video";
+
 export interface Workshop {
     id: string;
     title: string;
@@ -19,15 +21,6 @@ export interface Workshop {
         videos: number;
     };
     enrollmentStatus?: string | null;
-}
-
-export interface Video {
-    id: string;
-    title: string;
-    url: string;
-    uploadedAt: string;
-    trainerId: string;
-    workshopId?: string | null;
 }
 
 export interface WorkshopEnrollment {

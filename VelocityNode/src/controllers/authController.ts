@@ -126,7 +126,7 @@ export const loginUser = async (req: Request, res: Response) => {
 
 export const logout = async (req: Request, res: Response) => {
   try {
-    const { refreshToken } = req.cookies.refreshToken;
+    const refreshToken = req.cookies.refreshToken;
     if (refreshToken) {
       await prisma.refreshToken.deleteMany({ where: { token: refreshToken } });
     }
@@ -173,7 +173,7 @@ export const refresh = async (req: Request, res: Response) => {
       maxAge: 30 * 24 * 60 * 60 * 1000, //30 days
     });
 
-    res.json({ accessToken });
+    res.json({ accessToken, user });
   } catch (error: any) {
     return res.status(401).json({ error: error.message });
   }

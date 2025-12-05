@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 export const generateAccessToken = (
   payload: object,
-  expiresIn: string | number = "1h"
+  expiresIn: string | number = "1H"
 ): string => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {

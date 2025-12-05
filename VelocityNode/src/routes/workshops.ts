@@ -16,10 +16,13 @@ import { authenticateToken } from "../middleware/authMiddleware";
 
 const router = Router();
 
-// All routes are protected
+
 router.use(authenticateToken);
 
-// Public routes (now protected)
+
+router.get("/my/enrollments", getUserEnrollments);
+
+
 router.get("/", getAllWorkshops);
 router.get("/:id", getWorkshopById);
 
@@ -30,14 +33,11 @@ router.delete("/:id", deleteWorkshop);
 
 // Enrollment
 router.post("/:id/enroll", enrollInWorkshop);
+router.delete("/:id/enroll", unenrollFromWorkshop);
 router.get("/:id/enrollments", getWorkshopEnrollments);
 
 // Enrollment management
 router.patch("/enrollments/:id/approve", approveEnrollment);
 router.patch("/enrollments/:id/deny", denyEnrollment);
-
-// User specific routes
-router.get("/my/enrollments", getUserEnrollments);
-router.delete("/:id/enroll", unenrollFromWorkshop);
 
 export default router;

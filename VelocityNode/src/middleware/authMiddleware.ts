@@ -36,29 +36,6 @@ export const authenticateToken = (
   }
 };
 
-export const optionalAuthenticateToken = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const authHeader = req.headers["authorization"];
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return next();
-  }
-
-  const token = authHeader.split(" ")[1];
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
-    if (typeof decoded !== "string") {
-      req.user = decoded as UserPayloadType;
-    }
-    next();
-  } catch (error) {
-    // If token is invalid, just proceed without user info
-    next();
-  }
-};
 
 export function requireRole(requiredRole: "ADMIN" | "TRAINER" | "USER") {
   return async (req: any, res: Response, next: NextFunction) => {

@@ -28,12 +28,12 @@ app.use(cookieParser());
 
 
 app.use("/api/auth", authRouter);
-app.use("/api/users", authenticateToken, usersRouter);
+app.use("/api/users", usersRouter);
 app.use("/api/videos", videoRouter);
 app.use("/api/trainer-requests", trainerRequestRouter);
 app.use("/api/trainers", trainerRouter);
 app.use("/api/workshops", workshopRouter);
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

@@ -47,8 +47,11 @@ const processQueue = (error: any, token: string | null = null): void => {
 // Request interceptor - Add access token to headers
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-    if (accessToken && config.headers) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+    // Read token from localStorage on each request to ensure we use the current token
+    // This fixes the issue where switching users would still use the old cached token
+    const currentToken = localStorage.getItem("accessToken");
+    if (currentToken && config.headers) {
+      config.headers.Authorization = `Bearer ${currentToken}`;
     }
     return config;
   },
@@ -69,7 +72,7 @@ axiosInstance.interceptors.response.use(
     const isAuthRoute =
       originalRequest.url?.includes("/auth/login") ||
       originalRequest.url?.includes("/auth/register") ||
-      originalRequest.url?.includes("/auth/refresh");
+      originalRequest.url?.includes("/auth/refreshToken");
 
     // If error is 401 and we haven't already tried to refresh
     if (
@@ -95,13 +98,15 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true;
 
       try {
+        console.log("Token expired, attempting refresh...");
         // Attempt to refresh token
         const url = import.meta.env.VITE_API_URL as string;
         const response = await axios.post<RefreshTokenResponse>(
-          `${url}/auth/refresh`,
+          `${url}/auth/refreshToken`,
           {},
           { withCredentials: true }
         );
+        console.log("Token refresh successful");
 
         const { accessToken: newAccessToken, user } = response.data;
 
@@ -131,6 +136,7 @@ axiosInstance.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return axiosInstance(originalRequest);
       } catch (refreshError) {
+        console.error("Token refresh failed:", refreshError);
         // Refresh failed - redirect to login
         processQueue(refreshError, null);
 

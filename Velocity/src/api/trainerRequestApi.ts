@@ -1,5 +1,5 @@
 import axiosInstance from "./axiosConfig";
-import { TrainerRequest } from "../Types/TrainerRequest";
+import type { TrainerRequest } from "../Types/TrainerRequest";
 
 interface ApiResponse<T> {
     success: boolean;

@@ -20,7 +20,7 @@ const videoSchema = z.object({
     video: z
         .instanceof(FileList)
         .refine((files) => files.length > 0, "Video file is required")
-        .refine((files) => files[0]?.size <= 100 * 1024 * 1024, "Max file size is 100MB") // 100MB limit
+        .refine((files) => files[0]?.size <= 1000 * 1024 * 1024, "Max file size is 1GB")
         .refine(
             (files) => ["video/mp4", "video/quicktime", "video/webm"].includes(files[0]?.type),
             "Only .mp4, .mov, and .webm formats are supported"
@@ -31,7 +31,7 @@ type VideoFormValues = z.infer<typeof videoSchema>;
 
 interface VideoFormProps {
     onVideoPosted: () => void;
-    workshopId?: string;
+    workshopId: string;
 }
 
 const VideoForm = ({ onVideoPosted, workshopId }: VideoFormProps) => {

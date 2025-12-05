@@ -1,40 +1,55 @@
 import { useEffect, useState } from "react";
 import { getVideos } from "../../api/videoApi";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-interface Video {
-    id: string;
-    title: string;
-    url: string;
-    uploadedAt: string;
-    trainer: {
-        first_name: string;
-        last_name: string;
-    };
-}
+import { type Video } from "../../Types/Video";
+import VideoCard from "./VideoCard";
 
 const VideoList = ({ refreshTrigger = 0 }: { refreshTrigger?: number }) => {
     const [videos, setVideos] = useState<Video[]>([]);
     const [loading, setLoading] = useState(true);
+    const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
+
+    const fetchVideos = async () => {
+        // Don't set loading to true here to avoid UI flicker on background refresh
+        const result = await getVideos();
+        if (result.success) {
+            setVideos(result.data);
+        }
+        setLoading(false);
+    };
 
     useEffect(() => {
-        const fetchVideos = async () => {
-            setLoading(true);
-            const result = await getVideos();
-            if (result.success) {
-                setVideos(result.data);
-            }
-            setLoading(false);
-        };
-
+        setLoading(true); // Only show loading spinner on initial mount
         fetchVideos();
     }, [refreshTrigger]);
 
-    const getYouTubeId = (url: string) => {
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-        const match = url.match(regExp);
-        return match && match[2].length === 11 ? match[2] : null;
+    const handleProgressUpdate = (videoId: string, watchedSeconds: number, percent: number) => {
+        setVideos(prevVideos => {
+            return prevVideos.map(v => {
+                if (v.id === videoId) {
+                    const currentProgress = v.watchProgress?.[0] || {
+                        id: "temp",
+                        userId: "", // We might not have user ID here easily but it doesn't matter for UI
+                        videoId: videoId,
+                        watchedSeconds: 0,
+                        totalDuration: 0,
+                        percentWatched: 0,
+                        isCompleted: false,
+                        lastWatchedAt: new Date().toISOString()
+                    };
+
+                    return {
+                        ...v,
+                        watchProgress: [{
+                            ...currentProgress,
+                            watchedSeconds,
+                            percentWatched: percent,
+                            lastWatchedAt: new Date().toISOString()
+                        }]
+                    };
+                }
+                return v;
+            });
+        });
     };
 
     if (loading) {
@@ -51,49 +66,20 @@ const VideoList = ({ refreshTrigger = 0 }: { refreshTrigger?: number }) => {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {videos.map((video) => {
-                const videoId = getYouTubeId(video.url);
-                return (
-                    <Card key={video.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                        <div className="aspect-video w-full">
-                            {videoId ? (
-                                <iframe
-                                    width="100%"
-                                    height="100%"
-                                    src={`https://www.youtube.com/embed/${videoId}`}
-                                    title={video.title}
-                                    frameBorder="0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                ></iframe>
-                            ) : (
-                                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                    Invalid Video URL
-                                </div>
-                            )}
-                        </div>
-                        <CardHeader className="p-4 pb-2">
-                            <CardTitle className="text-lg line-clamp-1">{video.title}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-4 pt-0">
-                            <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                                <Avatar className="h-6 w-6">
-                                    <AvatarImage src="" />
-                                    <AvatarFallback className="text-xs">
-                                        {video.trainer.first_name[0]}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <span>
-                                    {video.trainer.first_name} {video.trainer.last_name}
-                                </span>
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                                {new Date(video.uploadedAt).toLocaleDateString()}
-                            </div>
-                        </CardContent>
-                    </Card>
-                );
-            })}
+            {videos.map((video) => (
+                <VideoCard
+                    key={video.id}
+                    video={video}
+                    isPlaying={playingVideoId === video.id}
+                    onPlay={() => setPlayingVideoId(video.id)}
+                    onComplete={() => {
+                        fetchVideos(); // Refresh list to show "Watched" badge immediately
+                    }}
+                    onProgressUpdate={(seconds, percent) =>
+                        handleProgressUpdate(video.id, seconds, percent)
+                    }
+                />
+            ))}
         </div>
     );
 };

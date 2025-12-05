@@ -45,6 +45,34 @@ export const createVideo = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "Title is required" });
         }
 
+        // workshopId is now required - videos must belong to a workshop
+        if (!workshopId) {
+            return res.status(400).json({ message: "Workshop ID is required. Videos must belong to a workshop." });
+        }
+
+        // Verify workshop exists and belongs to this trainer
+        const workshop = await prisma.workshop.findUnique({
+            where: { id: workshopId },
+        });
+
+        if (!workshop) {
+            return res.status(404).json({ message: "Workshop not found" });
+        }
+
+        if (workshop.trainerId !== userId) {
+            return res.status(403).json({ message: "You can only add videos to your own workshops" });
+        }
+
+        // Ensure credentials are set (in case env vars loaded late)
+        if (!process.env.YOUTUBE_REFRESH_TOKEN) {
+            throw new Error("YOUTUBE_REFRESH_TOKEN is not defined in environment variables");
+        }
+
+        // Always refresh credentials before upload to be safe
+        oauth2Client.setCredentials({
+            refresh_token: process.env.YOUTUBE_REFRESH_TOKEN,
+        });
+
         // Upload to YouTube
         const fileSize = fs.statSync(req.file.path).size;
         const resYoutube = await youtube.videos.insert({
@@ -53,7 +81,7 @@ export const createVideo = async (req: Request, res: Response) => {
             requestBody: {
                 snippet: {
                     title: title,
-                    description: `Uploaded by trainer via Velocity Platform${workshopId ? ` for workshop ${workshopId}` : ''}`,
+                    description: `Uploaded by trainer via Velocity Platform for workshop: ${workshop.title}`,
                 },
                 status: {
                     privacyStatus: "unlisted", // Default to unlisted
@@ -75,7 +103,7 @@ export const createVideo = async (req: Request, res: Response) => {
                 title,
                 url: youtubeUrl,
                 trainerId: userId,
-                workshopId: workshopId || null,
+                workshopId: workshopId,
             },
         });
 
@@ -94,12 +122,15 @@ export const createVideo = async (req: Request, res: Response) => {
             success: false,
             message: "Internal server error",
             error: error.message,
+            details: error.response?.data || "No additional details",
         });
     }
 };
 
 export const getVideos = async (req: Request, res: Response) => {
     try {
+        const userId = req.user?.id;
+
         const videos = await prisma.video.findMany({
             include: {
                 trainer: {
@@ -108,6 +139,16 @@ export const getVideos = async (req: Request, res: Response) => {
                         last_name: true,
                     },
                 },
+                watchProgress: userId ? {
+                    where: { userId },
+                    select: {
+                        watchedSeconds: true,
+                        totalDuration: true,
+                        percentWatched: true,
+                        isCompleted: true,
+                        lastWatchedAt: true,
+                    }
+                } : false,
             },
             orderBy: {
                 uploadedAt: "desc",

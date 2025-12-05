@@ -3,6 +3,8 @@ import AdminDashboard from "./Admin/AdminDashboard";
 import TrainerDashboard from "./Trainer/TrainerDashboard";
 import { Navigate } from "react-router";
 
+import UserDashboard from "./User/UserDashboard";
+
 const RoleBasedDashboard = () => {
   const user = useUserStore((state) => state.user);
 
@@ -18,12 +20,7 @@ const RoleBasedDashboard = () => {
     return <TrainerDashboard />;
   }
 
-  return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold">User Dashboard</h1>
-      <p>Welcome, {user.firstName}!</p>
-    </div>
-  );
+  return <UserDashboard />;
 };
 
 export default RoleBasedDashboard;

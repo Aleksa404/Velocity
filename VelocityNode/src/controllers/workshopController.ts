@@ -157,10 +157,30 @@ export const getWorkshopById = async (
                 },
                 videos: {
                     orderBy: { uploadedAt: "desc" },
+                    include: {
+                        trainer: {
+                            select: {
+                                id: true,
+                                first_name: true,
+                                last_name: true,
+                            },
+                        },
+                        watchProgress: currentUserId ? {
+                            where: { userId: currentUserId },
+                            select: {
+                                watchedSeconds: true,
+                                totalDuration: true,
+                                percentWatched: true,
+                                isCompleted: true,
+                                lastWatchedAt: true,
+                            }
+                        } : false,
+                    },
                 },
                 _count: {
                     select: {
                         enrollments: true,
+                        videos: true,
                     },
                 },
             },
@@ -445,6 +465,9 @@ export const getWorkshopEnrollments = async (
         }
 
         if (workshop.trainerId !== userId) {
+            console.log(workshop.trainerId);
+            console.log(userId);
+            console.warn(`Access denied: User ${userId} tried to view enrollments for workshop ${workshopId} owned by ${workshop.trainerId}`);
             return res.status(403).json({
                 success: false,
                 data: null,
