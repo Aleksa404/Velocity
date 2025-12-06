@@ -4,25 +4,31 @@ import type { Trainer } from "../Types/Trainer";
 import TrainerCard from "../components/Trainer/TrainerCard";
 import { toast } from "sonner";
 import { useUserStore } from "../stores/userStore";
+import { Button } from "@/components/ui/button";
+
 
 const TrainersPage = () => {
     const [trainers, setTrainers] = useState<Trainer[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [followingMap, setFollowingMap] = useState<Record<string, boolean>>({});
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     const user = useUserStore((state) => state.user);
 
     useEffect(() => {
         fetchTrainers();
-    }, []);
+    }, [currentPage]);
 
     const fetchTrainers = async () => {
+        setIsLoading(true);
         try {
-            const response = await getAllTrainers();
-            setTrainers(response.data);
+            const response = await getAllTrainers(currentPage, 12);
+            setTrainers(response.data.trainers);
+            setTotalPages(response.data.pagination.totalPages);
 
             // Initialize following map
             const map: Record<string, boolean> = {};
-            response.data.forEach((trainer: Trainer) => {
+            response.data.trainers.forEach((trainer: Trainer) => {
                 map[trainer.id] = trainer.isFollowing || false;
             });
             setFollowingMap(map);
@@ -70,6 +76,15 @@ const TrainersPage = () => {
         }
     };
 
+    const handlePageChange = (newPage: number) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            setCurrentPage(newPage);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
+
+
     if (isLoading) {
         return (
             <div className="container mx-auto p-6 max-w-7xl">
@@ -94,19 +109,55 @@ const TrainersPage = () => {
                     <p className="text-muted-foreground">No trainers found.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {trainers.map((trainer) => (
-                        <TrainerCard
-                            key={trainer.id}
-                            trainer={trainer}
-                            isFollowing={followingMap[trainer.id]}
-                            onFollowToggle={user ? handleFollowToggle : undefined}
-                        />
-                    ))}
-                </div>
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {trainers.map((trainer) => (
+                            <TrainerCard
+                                key={trainer.id}
+                                trainer={trainer}
+                                isFollowing={followingMap[trainer.id]}
+                                onFollowToggle={user ? handleFollowToggle : undefined}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Pagination Controls */}
+                    {totalPages > 0 && (
+                        <div className="flex justify-center items-center gap-2 mt-8">
+                            <Button
+                                variant="outline"
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
+                            >
+                                Previous
+                            </Button>
+                            <div className="flex items-center gap-2">
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                                    <Button
+                                        key={p}
+                                        variant={currentPage === p ? "default" : "outline"}
+                                        size="sm"
+                                        onClick={() => handlePageChange(p)}
+                                        className="w-8 h-8 p-0"
+                                    >
+                                        {p}
+                                    </Button>
+                                ))}
+                            </div>
+                            <Button
+                                variant="outline"
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                            >
+                                Next
+                            </Button>
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );
 };
 
 export default TrainersPage;
+

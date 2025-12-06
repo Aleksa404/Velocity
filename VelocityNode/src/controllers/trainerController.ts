@@ -10,6 +10,18 @@ export const getAllTrainers = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
+        const currentUserId = req.user?.id;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 12;
+        const skip = (page - 1) * limit;
+
+        // Get total count for pagination
+        const total = await prisma.user.count({
+            where: {
+                role: "TRAINER",
+            },
+        });
+
         const trainers = await prisma.user.findMany({
             where: {
                 role: "TRAINER",
@@ -32,11 +44,44 @@ export const getAllTrainers = async (
             orderBy: {
                 createdAt: "desc",
             },
+            skip,
+            take: limit,
         });
+
+        // If user is logged in, check which trainers they're following
+        let trainersWithFollowStatus = trainers;
+        if (currentUserId) {
+            const userFollows = await prisma.follow.findMany({
+                where: {
+                    userId: currentUserId,
+                    trainerId: { in: trainers.map(t => t.id) },
+                },
+                select: { trainerId: true },
+            });
+            const followingSet = new Set(userFollows.map(f => f.trainerId));
+
+            trainersWithFollowStatus = trainers.map(trainer => ({
+                ...trainer,
+                isFollowing: followingSet.has(trainer.id),
+            }));
+        } else {
+            trainersWithFollowStatus = trainers.map(trainer => ({
+                ...trainer,
+                isFollowing: false,
+            }));
+        }
 
         res.status(200).json({
             success: true,
-            data: trainers,
+            data: {
+                trainers: trainersWithFollowStatus,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit),
+                },
+            },
             message: "Trainers fetched successfully",
         });
     } catch (error: any) {
@@ -45,6 +90,56 @@ export const getAllTrainers = async (
             success: false,
             data: null,
             message: error.message || "Failed to fetch trainers",
+        });
+    }
+};
+
+// Search trainers
+export const searchTrainers = async (
+    req: Request,
+    res: Response<ApiResponse<any>>
+) => {
+    try {
+        const { query } = req.query;
+
+        if (!query || typeof query !== "string") {
+            return res.status(400).json({
+                success: false,
+                data: null,
+                message: "Search query is required",
+            });
+        }
+
+        const trainers = await prisma.user.findMany({
+            where: {
+                role: "TRAINER",
+                OR: [
+                    { first_name: { contains: query as string } },
+                    { last_name: { contains: query as string } },
+                ],
+            },
+            select: {
+                id: true,
+                first_name: true,
+                last_name: true,
+                email: true,
+                role: true,
+
+            },
+            take: 5, // Limit results
+        });
+
+        res.status(200).json({
+            success: true,
+            data: trainers,
+            message: "Trainers found successfully",
+        });
+    } catch (error: any) {
+        console.error("Error searching trainers:", error);
+        res.status(500).json({
+            success: false,
+            data: null,
+            message: error.message || "Failed to search trainers",
         });
     }
 };
@@ -194,7 +289,7 @@ export const followTrainer = async (
             });
         }
 
-        // Create follow
+
         const follow = await prisma.follow.create({
             data: {
                 userId,

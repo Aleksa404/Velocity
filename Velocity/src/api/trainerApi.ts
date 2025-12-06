@@ -8,8 +8,21 @@ interface ApiResponse<T> {
 }
 
 // Get all trainers
-export const getAllTrainers = async () => {
-    const response = await axiosInstance.get<ApiResponse<Trainer[]>>("/trainers");
+export const getAllTrainers = async (page: number = 1, limit: number = 12) => {
+    const response = await axiosInstance.get<ApiResponse<{
+        trainers: Trainer[];
+        pagination: { page: number; limit: number; total: number; totalPages: number };
+    }>>("/trainers", {
+        params: { page, limit },
+    });
+    return response.data;
+};
+
+// Search trainers
+export const searchTrainers = async (query: string) => {
+    const response = await axiosInstance.get<ApiResponse<Trainer[]>>(`/trainers/search`, {
+        params: { query },
+    });
     return response.data;
 };
 

@@ -4,7 +4,7 @@ import { ApiResponse } from "../types/ApiResponse";
 
 const prisma = new PrismaClient();
 
-// Create a workshop (trainers only)
+// Create a workshop 
 export const createWorkshop = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -13,7 +13,6 @@ export const createWorkshop = async (
         const { id: trainerId, role } = req.user!;
         const { title, description, date, capacity } = req.body;
 
-        // Check if user is a trainer
         if (role !== "TRAINER" && role !== "ADMIN") {
             return res.status(403).json({
                 success: false,
@@ -66,7 +65,6 @@ export const createWorkshop = async (
 };
 
 // Get all workshops
-// Get all workshops
 export const getAllWorkshops = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -77,9 +75,42 @@ export const getAllWorkshops = async (
         const limit = parseInt(req.query.limit as string) || 20;
         const skip = (page - 1) * limit;
 
+        // If user is logged in, get trainers they follow
+        let followedTrainerIds: string[] = [];
+        if (!currentUserId)
+            return res.status(401).json({
+                success: false,
+                data: null,
+                message: "Unauthorized",
+            })
+        const followedTrainers = await prisma.follow.findMany({
+            where: { userId: currentUserId },
+            select: { trainerId: true },
+        });
+        followedTrainerIds = followedTrainers.map(f => f.trainerId);
+
+
+        // If user doesn't follow anyone, return empty
+        if (followedTrainerIds.length === 0) {
+            return res.status(200).json({
+                success: true,
+                data: [],
+                message: "No workshops found. Follow trainers to see their workshops.",
+                pagination: {
+                    page,
+                    limit,
+                    total: 0,
+                    totalPages: 0,
+                },
+            } as any);
+        }
+
         const [workshops, total] = await Promise.all([
             prisma.workshop.findMany({
-                skip,
+                where: {
+                    trainerId: { in: followedTrainerIds },
+                },
+                skip: skip,
                 take: limit,
                 include: {
                     trainer: {
@@ -104,47 +135,38 @@ export const getAllWorkshops = async (
                     date: "desc",
                 },
             }),
-            prisma.workshop.count(),
+            prisma.workshop.count({
+                where: {
+                    trainerId: { in: followedTrainerIds },
+                },
+            }),
         ]);
 
         const totalPages = Math.ceil(total / limit);
 
-        // If user is logged in, check enrollment status for each workshop
-        if (currentUserId) {
-            const workshopsWithStatus = await Promise.all(
-                workshops.map(async (workshop) => {
-                    const enrollment = await prisma.workshopEnrollment.findUnique({
-                        where: {
-                            userId_workshopId: {
-                                userId: currentUserId,
-                                workshopId: workshop.id,
-                            },
+        // check enrollment status for each workshop
+
+        const workshopsWithStatus = await Promise.all(
+            workshops.map(async (workshop) => {
+                const enrollment = await prisma.workshopEnrollment.findUnique({
+                    where: {
+                        userId_workshopId: {
+                            userId: currentUserId,
+                            workshopId: workshop.id,
                         },
-                    });
+                    },
+                });
 
-                    return {
-                        ...workshop,
-                        enrollmentStatus: enrollment?.status || null,
-                    };
-                })
-            );
+                return {
+                    ...workshop,
+                    enrollmentStatus: enrollment?.status || null,
+                };
+            })
+        );
 
-            return res.status(200).json({
-                success: true,
-                data: workshopsWithStatus,
-                message: "Workshops fetched successfully",
-                pagination: {
-                    page,
-                    limit,
-                    total,
-                    totalPages,
-                },
-            } as any);
-        }
-
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
-            data: workshops,
+            data: workshopsWithStatus,
             message: "Workshops fetched successfully",
             pagination: {
                 page,
@@ -153,6 +175,7 @@ export const getAllWorkshops = async (
                 totalPages,
             },
         } as any);
+
     } catch (error: any) {
         console.error("Error fetching workshops:", error);
         res.status(500).json({
