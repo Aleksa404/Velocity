@@ -1,32 +1,10 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
-import { z } from "zod";
+import fs from "fs";
+import { videoUploadQueue } from "../YoutubeUploadMQ/videoQueue";
+
 
 const prisma = new PrismaClient();
-
-import fs from "fs";
-import multer from "multer";
-import { google } from "googleapis";
-
-// Configure multer for temporary file storage
-const upload = multer({ dest: "uploads/" });
-
-const youtube = google.youtube("v3");
-
-const oauth2Client = new google.auth.OAuth2(
-    process.env.YOUTUBE_CLIENT_ID,
-    process.env.YOUTUBE_CLIENT_SECRET,
-    "http://localhost:5000/oauth2callback" // Redirect URI (not strictly used for refresh token flow but required)
-);
-
-// Set credentials globally if using a single platform account
-if (process.env.YOUTUBE_REFRESH_TOKEN) {
-    oauth2Client.setCredentials({
-        refresh_token: process.env.YOUTUBE_REFRESH_TOKEN,
-    });
-}
-
-export const uploadMiddleware = upload.single("video");
 
 export const createVideo = async (req: Request, res: Response) => {
     try {
@@ -40,12 +18,11 @@ export const createVideo = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "No video file provided" });
         }
 
-        const { title, workshopId } = req.body;
+        const { title, description, workshopId } = req.body;
         if (!title) {
             return res.status(400).json({ message: "Title is required" });
         }
 
-        // workshopId is now required - videos must belong to a workshop
         if (!workshopId) {
             return res.status(400).json({ message: "Workshop ID is required. Videos must belong to a workshop." });
         }
@@ -63,54 +40,19 @@ export const createVideo = async (req: Request, res: Response) => {
             return res.status(403).json({ message: "You can only add videos to your own workshops" });
         }
 
-        // Ensure credentials are set (in case env vars loaded late)
-        if (!process.env.YOUTUBE_REFRESH_TOKEN) {
-            throw new Error("YOUTUBE_REFRESH_TOKEN is not defined in environment variables");
-        }
-
-        // Always refresh credentials before upload to be safe
-        oauth2Client.setCredentials({
-            refresh_token: process.env.YOUTUBE_REFRESH_TOKEN,
+        // Add job to background queue
+        await videoUploadQueue.add("video-upload", {
+            type: 'upload',
+            title,
+            description,
+            workshopId,
+            userId,
+            filePath: req.file.path,
         });
 
-        // Upload to YouTube
-        const fileSize = fs.statSync(req.file.path).size;
-        const resYoutube = await youtube.videos.insert({
-            auth: oauth2Client,
-            part: ["snippet", "status"],
-            requestBody: {
-                snippet: {
-                    title: title,
-                    description: `Uploaded by trainer via Velocity Platform for workshop: ${workshop.title}`,
-                },
-                status: {
-                    privacyStatus: "unlisted", // Default to unlisted
-                },
-            },
-            media: {
-                body: fs.createReadStream(req.file.path),
-            },
-        });
-
-        // Clean up temp file
-        fs.unlinkSync(req.file.path);
-
-        const youtubeId = resYoutube.data.id;
-        const youtubeUrl = `https://www.youtube.com/watch?v=${youtubeId}`;
-
-        const video = await prisma.video.create({
-            data: {
-                title,
-                url: youtubeUrl,
-                trainerId: userId,
-                workshopId: workshopId,
-            },
-        });
-
-        return res.status(201).json({
+        return res.status(202).json({
             success: true,
-            data: video,
-            message: "Video uploaded and posted successfully",
+            message: "Video upload started in background",
         });
     } catch (error: any) {
         console.error("Error creating video:", error);
@@ -130,8 +72,35 @@ export const createVideo = async (req: Request, res: Response) => {
 export const getVideos = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id;
+        const workshopId = req.query.workshopId as string;
+
+        if (!workshopId) {
+            return res.status(400).json({ message: "Workshop ID is required to fetch videos" });
+        }
+
+        // Check if user has access to this workshop
+        const workshop = await prisma.workshop.findUnique({
+            where: { id: workshopId },
+            include: {
+                enrollments: {
+                    where: { userId: userId },
+                },
+            },
+        });
+
+        if (!workshop) {
+            return res.status(404).json({ message: "Workshop not found" });
+        }
+
+        const isTrainer = workshop.trainerId === userId;
+        const isEnrolled = workshop.enrollments.some(e => e.status === "APPROVED");
+
+        if (!isTrainer && !isEnrolled) {
+            return res.status(403).json({ message: "You must be enrolled and approved in this workshop to view videos." });
+        }
 
         const videos = await prisma.video.findMany({
+            where: { workshopId },
             include: {
                 trainer: {
                     select: {
@@ -161,6 +130,54 @@ export const getVideos = async (req: Request, res: Response) => {
         });
     } catch (error) {
         console.error("Error fetching videos:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+
+export const deleteVideo = async (req: Request, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        const videoId = req.params.id;
+
+        const video = await prisma.video.findUnique({
+            where: { id: videoId },
+        });
+
+        if (!video) {
+            return res.status(404).json({ message: "Video not found" });
+        }
+
+        if (video.trainerId !== userId) {
+            return res.status(403).json({ message: "You can only delete your own videos" });
+        }
+
+        // Delete from DB
+
+        await prisma.video.delete({
+            where: { id: videoId },
+        });
+
+        // https://www.youtube.com/watch?v=VIDEO_ID
+        const youtubeId = video.url.split("v=")[1];
+
+        if (youtubeId) {
+            await videoUploadQueue.add("video-delete", {
+                type: 'delete',
+                youtubeId: youtubeId,
+                userId: userId!,
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Video deleted successfully",
+        });
+
+    } catch (error) {
+        console.error("Error deleting video:", error);
         return res.status(500).json({
             success: false,
             message: "Internal server error",

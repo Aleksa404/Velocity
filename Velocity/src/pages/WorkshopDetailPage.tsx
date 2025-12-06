@@ -57,14 +57,10 @@ const WorkshopDetailPage = () => {
                 setWorkshop({
                     ...workshop,
                     enrollmentStatus: "PENDING",
-                    _count: workshop._count ? {
-                        ...workshop._count,
-                        enrollments: workshop._count.enrollments + 1
-                    } : undefined
+
                 });
             }
         } catch (error: any) {
-            console.error("Error enrolling in workshop:", error);
             toast.error(error.response?.data?.message || "Failed to enroll in workshop");
         }
     };
@@ -172,7 +168,7 @@ const WorkshopDetailPage = () => {
 
     return (
         <div className="container mx-auto p-6 max-w-6xl space-y-8">
-            {/* Hero Header Section */}
+            {/*Header Section */}
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 text-white shadow-xl">
                 <div className="absolute inset-0 bg-black/10" />
                 <div className="relative p-8 md:p-12">
@@ -215,7 +211,7 @@ const WorkshopDetailPage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main Content - Left Column */}
                 <div className="lg:col-span-2 space-y-8">
-                    {/* Description */}
+                    {/*Description */}
                     <Card className="border-none shadow-sm bg-white/50 backdrop-blur-sm">
                         <CardHeader>
                             <CardTitle className="text-xl flex items-center gap-2">
@@ -275,7 +271,7 @@ const WorkshopDetailPage = () => {
                     </div>
                 </div>
 
-                {/* Sidebar - Right Column */}
+                {/* Right Column */}
                 <div className="space-y-6">
                     <Card className="sticky top-6">
                         <CardHeader>

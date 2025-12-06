@@ -163,7 +163,7 @@ const UserDashboard = () => {
                                                 </Button>
                                                 <Button
                                                     variant="destructive"
-                                                    size="icon"
+                                                    size="default"
                                                     title="Unenroll"
                                                     disabled={processingId === enrollment.workshopId}
                                                     onClick={() => setUnenrollDialog({ open: true, workshopId: enrollment.workshopId })}
@@ -171,7 +171,7 @@ const UserDashboard = () => {
                                                     {processingId === enrollment.workshopId ? (
                                                         <Loader2 className="h-4 w-4 animate-spin" />
                                                     ) : (
-                                                        <X className="h-4 w-4" />
+                                                        <p>Unenroll</p>
                                                     )}
                                                 </Button>
                                             </div>
@@ -209,7 +209,8 @@ const UserDashboard = () => {
                                                 View Profile
                                             </Button>
                                             <Button
-                                                variant="secondary"
+
+                                                variant="destructive"
                                                 onClick={() => setUnfollowDialog({ open: true, trainerId: follow.trainerId })}
                                                 disabled={processingId === follow.trainerId}
                                             >
@@ -237,7 +238,7 @@ const UserDashboard = () => {
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={() => unenrollDialog.workshopId && handleUnenroll(unenrollDialog.workshopId)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="bg-destructive text-amber-50 hover:bg-destructive/90"
                         >
                             Unenroll
                         </AlertDialogAction>
@@ -257,6 +258,7 @@ const UserDashboard = () => {
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
+                            className="bg-destructive text-amber-50 hover:bg-destructive/90"
                             onClick={() => unfollowDialog.trainerId && handleUnfollow(unfollowDialog.trainerId)}
                         >
                             Unfollow

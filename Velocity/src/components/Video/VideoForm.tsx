@@ -14,9 +14,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
 
 const videoSchema = z.object({
     title: z.string().min(1, "Title is required"),
+    description: z.string().optional(),
     video: z
         .instanceof(FileList)
         .refine((files) => files.length > 0, "Video file is required")
@@ -39,6 +41,7 @@ const VideoForm = ({ onVideoPosted, workshopId }: VideoFormProps) => {
         resolver: zodResolver(videoSchema),
         defaultValues: {
             title: "",
+            description: "",
         },
     });
 
@@ -46,6 +49,9 @@ const VideoForm = ({ onVideoPosted, workshopId }: VideoFormProps) => {
         try {
             const formData = new FormData();
             formData.append("title", data.title);
+            if (data.description) {
+                formData.append("description", data.description);
+            }
             formData.append("video", data.video[0]);
             if (workshopId) {
                 formData.append("workshopId", workshopId);
@@ -75,6 +81,23 @@ const VideoForm = ({ onVideoPosted, workshopId }: VideoFormProps) => {
                             <FormLabel>Video Title</FormLabel>
                             <FormControl>
                                 <Input placeholder="e.g., Full Body Workout" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Description (Optional)</FormLabel>
+                            <FormControl>
+                                <Textarea
+                                    placeholder="Add details about this video..."
+                                    className="resize-none"
+                                    {...field}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>

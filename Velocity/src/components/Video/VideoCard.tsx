@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Play, Check } from "lucide-react";
 import VideoPlayer from "./VideoPlayer";
@@ -11,16 +10,13 @@ interface VideoCardProps {
     onPlay: () => void;
     onComplete?: () => void;
     onProgressUpdate?: (watchedSeconds: number, percent: number) => void;
+
 }
 
 const VideoCard = ({ video, isPlaying, onPlay, onComplete, onProgressUpdate }: VideoCardProps) => {
-    const getYouTubeId = (url: string) => {
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-        const match = url.match(regExp);
-        return match && match[2].length === 11 ? match[2] : null;
-    };
 
-    const youtubeId = getYouTubeId(video.url);
+    const youtubeId = video.url.split("v=")[1];
+
     const progress = video.watchProgress && video.watchProgress.length > 0
         ? video.watchProgress[0]
         : null;
@@ -70,7 +66,7 @@ const VideoCard = ({ video, isPlaying, onPlay, onComplete, onProgressUpdate }: V
                         {percentWatched > 0 && (
                             <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gray-700">
                                 <div
-                                    className={`h-full ${isCompleted ? 'bg-green-500' : 'bg-primary'}`}
+                                    className={`h-full ${isCompleted ? 'bg-green-500' : 'bg-green-400'}`}
                                     style={{ width: `${percentWatched}%` }}
                                 />
                             </div>
@@ -83,12 +79,6 @@ const VideoCard = ({ video, isPlaying, onPlay, onComplete, onProgressUpdate }: V
                             </Badge>
                         )}
 
-                        {/* Resume Badge */}
-                        {!isCompleted && percentWatched > 0 && (
-                            <Badge variant="secondary" className="absolute top-2 right-2">
-                                Resume
-                            </Badge>
-                        )}
                     </div>
                 )}
             </div>
@@ -96,17 +86,11 @@ const VideoCard = ({ video, isPlaying, onPlay, onComplete, onProgressUpdate }: V
                 <CardTitle className="text-lg line-clamp-1" title={video.title}>{video.title}</CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0 mt-auto">
-                <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                    <Avatar className="h-6 w-6">
-                        <AvatarImage src="" />
-                        <AvatarFallback className="text-xs">
-                            {video.trainer.first_name[0]}
-                        </AvatarFallback>
-                    </Avatar>
-                    <span>
-                        {video.trainer.first_name} {video.trainer.last_name}
-                    </span>
-                </div>
+                {video.description && (
+                    <p className="text-sm text-muted-foreground line-clamp-2 mt-2" title={video.description}>
+                        {video.description}
+                    </p>
+                )}
                 <div className="flex justify-between items-center mt-2">
                     <div className="text-xs text-muted-foreground">
                         {new Date(video.uploadedAt).toLocaleDateString()}

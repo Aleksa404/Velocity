@@ -12,9 +12,11 @@ export interface VideoWatchProgress {
 export interface Video {
     id: string;
     title: string;
+    description?: string;
     url: string;
     duration?: number;
     uploadedAt: string;
+    trainerId: string;
     trainer: {
         id?: string;
         first_name: string;

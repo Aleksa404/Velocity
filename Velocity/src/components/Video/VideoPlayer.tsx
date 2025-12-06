@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import YouTube, { type YouTubeProps } from "react-youtube";
 import { updateVideoProgress, markVideoComplete } from "../../api/videoApi";
 import { toast } from "sonner";
@@ -98,15 +98,16 @@ const VideoPlayer = ({
         }
     };
 
-    const opts: YouTubeProps['opts'] = {
+    const opts: YouTubeProps['opts'] = useMemo(() => ({
         width: '100%',
         height: '100%',
         playerVars: {
-            // https://developers.google.com/youtube/player_parameters
             autoplay: 1,
             start: Math.floor(initialProgress),
+            rel: 0, // Only show related videos from the same channel
+            modestbranding: 1, // Hide YouTube logo in control bar
         },
-    };
+    }), [dbVideoId]);
 
     return (
         <div className={`aspect-video w-full ${className}`}>

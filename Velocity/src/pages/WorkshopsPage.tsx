@@ -12,16 +12,22 @@ const WorkshopsPage = () => {
     const [workshops, setWorkshops] = useState<Workshop[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [filter, setFilter] = useState<"all" | "upcoming" | "past">("all");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     const user = useUserStore((state) => state.user);
 
     useEffect(() => {
         fetchWorkshops();
-    }, []);
+    }, [currentPage]);
 
     const fetchWorkshops = async () => {
+        setIsLoading(true);
         try {
-            const response = await getAllWorkshops();
+            const response: any = await getAllWorkshops(currentPage);
             setWorkshops(response.data);
+            if (response.pagination) {
+                setTotalPages(response.pagination.totalPages);
+            }
         } catch (error) {
             console.error("Error fetching workshops:", error);
             toast.error("Failed to load workshops");
@@ -134,16 +140,51 @@ const WorkshopsPage = () => {
                     <p className="text-muted-foreground">No workshops found.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredWorkshops.map((workshop) => (
-                        <WorkshopCard
-                            key={workshop.id}
-                            workshop={workshop}
-                            enrollmentStatus={workshop.enrollmentStatus}
-                            onEnroll={user && user.role === "USER" ? handleEnroll : undefined}
-                        />
-                    ))}
-                </div>
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredWorkshops.map((workshop) => (
+                            <WorkshopCard
+                                key={workshop.id}
+                                workshop={workshop}
+                                enrollmentStatus={workshop.enrollmentStatus}
+                                onEnroll={user && user.role === "USER" ? handleEnroll : undefined}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Pagination Controls */}
+                    {totalPages > 0 && (
+                        <div className="flex justify-center items-center gap-2 mt-8">
+                            <Button
+                                variant="outline"
+                                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                            >
+                                Previous
+                            </Button>
+                            <div className="flex items-center gap-2">
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                    <Button
+                                        key={page}
+                                        variant={currentPage === page ? "default" : "outline"}
+                                        size="sm"
+                                        onClick={() => setCurrentPage(page)}
+                                        className="w-8 h-8 p-0"
+                                    >
+                                        {page}
+                                    </Button>
+                                ))}
+                            </div>
+                            <Button
+                                variant="outline"
+                                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                            >
+                                Next
+                            </Button>
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );

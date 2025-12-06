@@ -17,18 +17,14 @@ export const authenticateToken = (
 
   const token = authHeader.split(" ")[1];
   try {
-    console.log("Verifying token:", token);
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
     if (typeof decoded === "string") {
       return res.status(401).json({ message: "Invalid token payload" });
     }
     req.user = decoded as UserPayloadType;
-    console.log("Token verified successfully:", decoded);
+
     next();
   } catch (error: any) {
-    console.error("JWT verification failed:", error.message);
-    console.error("Token that failed:", token);
-    console.error("JWT_SECRET exists:", !!process.env.JWT_SECRET);
     return res.status(401).json({
       message: "Invalid or expired token",
       error: error.message
@@ -41,7 +37,6 @@ export function requireRole(requiredRole: "ADMIN" | "TRAINER" | "USER") {
   return async (req: any, res: Response, next: NextFunction) => {
     try {
       const { id, role } = req.user;
-      console.log(req.user);
 
       if (!id) {
         return res

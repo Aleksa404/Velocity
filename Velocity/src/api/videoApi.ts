@@ -13,9 +13,22 @@ export const createVideo = async (data: FormData) => {
     }
 };
 
-export const getVideos = async () => {
+// Video deletion
+export const deleteVideo = async (videoId: string) => {
     try {
-        const response = await axiosInstance.get("/videos");
+        const response = await axiosInstance.delete(`/videos/${videoId}`);
+        return response.data;
+    } catch (error: any) {
+        return {
+            success: false,
+            message: error.response?.data?.message || "Failed to delete video",
+        };
+    }
+};
+
+export const getVideos = async (workshopId: string) => {
+    try {
+        const response = await axiosInstance.get(`/videos?workshopId=${workshopId}`);
         return response.data;
     } catch (error: any) {
         return {
@@ -77,14 +90,3 @@ export const markVideoComplete = async (videoId: string) => {
     }
 };
 
-export const getWatchHistory = async (limit = 20, offset = 0) => {
-    try {
-        const response = await axiosInstance.get(`/videos/my/watch-history?limit=${limit}&offset=${offset}`);
-        return response.data;
-    } catch (error: any) {
-        return {
-            success: false,
-            message: error.response?.data?.message || "Failed to get watch history",
-        };
-    }
-};

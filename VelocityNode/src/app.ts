@@ -9,6 +9,7 @@ import videoRouter from "./routes/videos";
 import trainerRequestRouter from "./routes/trainerRequests";
 import trainerRouter from "./routes/trainers";
 import workshopRouter from "./routes/workshops";
+import "./YoutubeUploadMQ/videoWorker";
 
 const app = express();
 app.use(
@@ -25,7 +26,6 @@ app.use(express.json());
 app.use(cookieParser());
 
 //routes
-
 
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);

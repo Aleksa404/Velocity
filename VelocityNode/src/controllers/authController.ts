@@ -18,7 +18,7 @@ import { success } from "zod";
 const prisma = new PrismaClient();
 
 export const registerUser = async (req: Request, res: Response) => {
-  console.log("Registering user:", req.body);
+
   const result = registerUserSchema.safeParse(req.body);
 
   if (!result.success) {
@@ -49,7 +49,7 @@ export const registerUser = async (req: Request, res: Response) => {
       email,
       password: hashedPassword,
       first_name: req.body.firstName,
-      last_name: req.body.lastName || "",
+      last_name: req.body.lastName,
       role: "USER",
     },
   });
@@ -74,7 +74,7 @@ export const registerUser = async (req: Request, res: Response) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    maxAge: 30 * 24 * 60 * 60 * 1000, //30 days
   });
 
   return res.status(201).json({
@@ -84,14 +84,22 @@ export const registerUser = async (req: Request, res: Response) => {
   });
 };
 
-export const loginUser = async (req: Request, res: Response) => {
+export const loginUser = async (req: Request, res: Response<ApiResponse<any>>) => {
   const { email, password } = req.body;
 
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) return res.status(401).json({ message: "Invalid credentials" });
+  if (!user) return res.status(401).json({
+    success: false,
+    data: null,
+    message: "Wrong email or password"
+  });
 
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+  if (!isMatch) return res.status(401).json({
+    success: false,
+    data: null,
+    message: "Wrong email or password"
+  });
 
   const responseUser: UserLoginResponse = {
     id: user.id,
@@ -124,7 +132,7 @@ export const loginUser = async (req: Request, res: Response) => {
   });
 };
 
-export const logout = async (req: Request, res: Response) => {
+export const logout = async (req: Request, res: Response<ApiResponse<any>>) => {
   try {
     const refreshToken = req.cookies.refreshToken;
     if (refreshToken) {
@@ -139,11 +147,19 @@ export const logout = async (req: Request, res: Response) => {
 
     return res
       .status(204)
-      .json({ success: true, message: "Logged out successfully" });
+      .json({
+        success: true,
+        data: null,
+        message: "Logged out successfully"
+      });
   } catch (error) {
     return res
       .status(500)
-      .json({ success: false, message: "Internal server error" });
+      .json({
+        success: false,
+        data: null,
+        message: "Internal server error"
+      });
   }
 };
 
@@ -151,7 +167,11 @@ export const refresh = async (req: Request, res: Response) => {
   const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {
-    return res.status(401).json({ error: "No refresh token provided" });
+    return res.status(401).json({
+      success: false,
+      data: null,
+      message: "No refresh token provided"
+    });
   }
 
   try {

@@ -41,7 +41,9 @@ export const createWorkshop = async (
                 },
                 _count: {
                     select: {
-                        enrollments: true,
+                        enrollments: {
+                            where: { status: "APPROVED" },
+                        },
                         videos: true,
                     },
                 },
@@ -64,34 +66,48 @@ export const createWorkshop = async (
 };
 
 // Get all workshops
+// Get all workshops
 export const getAllWorkshops = async (
     req: Request,
     res: Response<ApiResponse<any>>
 ) => {
     try {
         const currentUserId = req.user?.id;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 20;
+        const skip = (page - 1) * limit;
 
-        const workshops = await prisma.workshop.findMany({
-            include: {
-                trainer: {
-                    select: {
-                        id: true,
-                        first_name: true,
-                        last_name: true,
-                        email: true,
+        const [workshops, total] = await Promise.all([
+            prisma.workshop.findMany({
+                skip,
+                take: limit,
+                include: {
+                    trainer: {
+                        select: {
+                            id: true,
+                            first_name: true,
+                            last_name: true,
+                            email: true,
+                            role: true,
+                        },
+                    },
+                    _count: {
+                        select: {
+                            enrollments: {
+                                where: { status: "APPROVED" },
+                            },
+                            videos: true,
+                        },
                     },
                 },
-                _count: {
-                    select: {
-                        enrollments: true,
-                        videos: true,
-                    },
+                orderBy: {
+                    date: "desc",
                 },
-            },
-            orderBy: {
-                date: "desc",
-            },
-        });
+            }),
+            prisma.workshop.count(),
+        ]);
+
+        const totalPages = Math.ceil(total / limit);
 
         // If user is logged in, check enrollment status for each workshop
         if (currentUserId) {
@@ -117,14 +133,26 @@ export const getAllWorkshops = async (
                 success: true,
                 data: workshopsWithStatus,
                 message: "Workshops fetched successfully",
-            });
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    totalPages,
+                },
+            } as any);
         }
 
         res.status(200).json({
             success: true,
             data: workshops,
             message: "Workshops fetched successfully",
-        });
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages,
+            },
+        } as any);
     } catch (error: any) {
         console.error("Error fetching workshops:", error);
         res.status(500).json({
@@ -179,7 +207,9 @@ export const getWorkshopById = async (
                 },
                 _count: {
                     select: {
-                        enrollments: true,
+                        enrollments: {
+                            where: { status: "APPROVED" },
+                        },
                         videos: true,
                     },
                 },
@@ -206,6 +236,14 @@ export const getWorkshopById = async (
                 },
             });
             enrollmentStatus = enrollment?.status || null;
+        }
+
+        const isTrainer = workshop.trainerId === currentUserId;
+        const isEnrolled = enrollmentStatus === "APPROVED";
+
+        // Remove videos if not trainer and not enrolled/approved
+        if (!isTrainer && !isEnrolled) {
+            (workshop as any).videos = [];
         }
 
         res.status(200).json({
@@ -272,7 +310,9 @@ export const updateWorkshop = async (
                 },
                 _count: {
                     select: {
-                        enrollments: true,
+                        enrollments: {
+                            where: { status: "APPROVED" },
+                        },
                         videos: true,
                     },
                 },
@@ -694,7 +734,9 @@ export const getUserEnrollments = async (
                         },
                         _count: {
                             select: {
-                                enrollments: true,
+                                enrollments: {
+                                    where: { status: "APPROVED" },
+                                },
                                 videos: true,
                             },
                         },

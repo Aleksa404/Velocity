@@ -8,8 +8,8 @@ interface ApiResponse<T> {
 }
 
 // Get all workshops
-export const getAllWorkshops = async () => {
-    const response = await axiosInstance.get<ApiResponse<Workshop[]>>("/workshops");
+export const getAllWorkshops = async (page = 1, limit = 20) => {
+    const response = await axiosInstance.get<ApiResponse<Workshop[]>>(`/workshops?page=${page}&limit=${limit}`);
     return response.data;
 };
 

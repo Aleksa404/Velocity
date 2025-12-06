@@ -22,7 +22,7 @@ export const generateAccessToken = (
 
 export const generateRefreshToken = async (
   userId: string,
-  days: number = 7
+  days: number = 30
 ) => {
   const token = crypto.randomBytes(40).toString("hex");
   const expires = new Date();

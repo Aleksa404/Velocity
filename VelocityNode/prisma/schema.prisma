@@ -25,12 +25,6 @@ enum RequestStatus {
   DENIED
 }
 
-enum EnrollmentStatus {
-  PENDING
-  APPROVED
-  DENIED
-}
-
 model User {
   id         String   @id @default(cuid())
   first_name String
@@ -41,12 +35,12 @@ model User {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  refreshTokens RefreshToken[]
-  trainerRequests TrainerRequest[]
-  following Follow[] @relation("UserFollows")
-  followers Follow[] @relation("TrainerFollowers")
+  refreshTokens       RefreshToken[]
+  trainerRequests     TrainerRequest[]
+  following           Follow[]             @relation("UserFollows")
+  followers           Follow[]             @relation("TrainerFollowers")
   workshopEnrollments WorkshopEnrollment[]
-  videoWatchProgress VideoWatchProgress[]
+  videoWatchProgress  VideoWatchProgress[]
 
   videos    Video[]
   workshops Workshop[]
@@ -75,50 +69,51 @@ model Workshop {
   title       String
   description String
   date        DateTime
-  capacity    Int?     // Optional max participants
+  capacity    Int? // Optional max participants
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  trainerId String
-  trainer   User    @relation(fields: [trainerId], references: [id])
-  videos    Video[]
+  trainerId   String
+  trainer     User                 @relation(fields: [trainerId], references: [id])
+  videos      Video[]
   enrollments WorkshopEnrollment[]
 }
 
 model Video {
-  id         String   @id @default(cuid())
-  title      String
-  url        String
-  duration   Int?     // Duration in seconds
-  uploadedAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  url         String
+  duration    Int? // Duration in seconds
+  uploadedAt  DateTime @default(now())
 
   trainerId  String
-  trainer    User      @relation(fields: [trainerId], references: [id])
+  trainer    User     @relation(fields: [trainerId], references: [id])
   workshopId String
-  workshop   Workshop  @relation(fields: [workshopId], references: [id])
-  
+  workshop   Workshop @relation(fields: [workshopId], references: [id])
+
   watchProgress VideoWatchProgress[]
 }
 
 model VideoWatchProgress {
-  id              String   @id @default(cuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  videoId         String
-  video           Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
-  
+  id      String @id @default(cuid())
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videoId String
+  video   Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
   // Progress tracking
-  watchedSeconds  Int      @default(0)  // Current position in seconds
-  totalDuration   Int?     // Total video duration (cached)
-  percentWatched  Int      @default(0)  // 0-100
-  
+  watchedSeconds Int  @default(0) // Current position in seconds
+  totalDuration  Int? // Total video duration (cached)
+  percentWatched Int  @default(0) // 0-100
+
   // Status
-  isCompleted     Boolean  @default(false)  // true when >95% watched
-  
+  isCompleted Boolean @default(false) // true when >95% watched
+
   // Timestamps
-  lastWatchedAt   DateTime @default(now())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  lastWatchedAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@unique([userId, videoId])
   @@index([userId, lastWatchedAt])
@@ -136,8 +131,8 @@ model RefreshToken {
 
 model Follow {
   id        String   @id @default(cuid())
-  userId    String   // The follower
-  trainerId String   // The trainer being followed
+  userId    String // The follower
+  trainerId String // The trainer being followed
   createdAt DateTime @default(now())
 
   user    User @relation("UserFollows", fields: [userId], references: [id], onDelete: Cascade)
@@ -147,12 +142,12 @@ model Follow {
 }
 
 model WorkshopEnrollment {
-  id         String           @id @default(cuid())
+  id         String        @id @default(cuid())
   userId     String
   workshopId String
-  status     EnrollmentStatus @default(PENDING)
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
+  status     RequestStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
 
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   workshop Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)

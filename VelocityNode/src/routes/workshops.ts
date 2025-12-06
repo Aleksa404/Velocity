@@ -23,10 +23,9 @@ router.use(authenticateToken);
 router.get("/my/enrollments", getUserEnrollments);
 
 
+// Workshop CRUD
 router.get("/", getAllWorkshops);
 router.get("/:id", getWorkshopById);
-
-// Workshop CRUD
 router.post("/", createWorkshop);
 router.patch("/:id", updateWorkshop);
 router.delete("/:id", deleteWorkshop);
@@ -36,7 +35,6 @@ router.post("/:id/enroll", enrollInWorkshop);
 router.delete("/:id/enroll", unenrollFromWorkshop);
 router.get("/:id/enrollments", getWorkshopEnrollments);
 
-// Enrollment management
 router.patch("/enrollments/:id/approve", approveEnrollment);
 router.patch("/enrollments/:id/deny", denyEnrollment);
 

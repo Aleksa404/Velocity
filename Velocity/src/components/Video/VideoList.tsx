@@ -3,14 +3,14 @@ import { getVideos } from "../../api/videoApi";
 import { type Video } from "../../Types/Video";
 import VideoCard from "./VideoCard";
 
-const VideoList = ({ refreshTrigger = 0 }: { refreshTrigger?: number }) => {
+const VideoList = ({ workshopId, refreshTrigger = 0 }: { workshopId: string, refreshTrigger?: number }) => {
     const [videos, setVideos] = useState<Video[]>([]);
     const [loading, setLoading] = useState(true);
     const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
 
     const fetchVideos = async () => {
         // Don't set loading to true here to avoid UI flicker on background refresh
-        const result = await getVideos();
+        const result = await getVideos(workshopId);
         if (result.success) {
             setVideos(result.data);
         }
@@ -51,6 +51,8 @@ const VideoList = ({ refreshTrigger = 0 }: { refreshTrigger?: number }) => {
             });
         });
     };
+
+
 
     if (loading) {
         return <div className="text-center py-10">Loading videos...</div>;

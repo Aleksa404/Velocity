@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { getWorkshopById, getWorkshopEnrollments, approveEnrollment, denyEnrollment } from "../api/workshopApi";
+import { deleteVideo } from "../api/videoApi";
 import type { Workshop, WorkshopEnrollment } from "../Types/Workshop";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ArrowLeft, Check, X, Video as VideoIcon, Users } from "lucide-react";
+import { ArrowLeft, Check, X, Video as VideoIcon, Users, Trash } from "lucide-react";
 import VideoForm from "../components/Video/VideoForm";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 const WorkshopManagementPage = () => {
     const { id } = useParams<{ id: string }>();
@@ -16,6 +18,11 @@ const WorkshopManagementPage = () => {
     const [workshop, setWorkshop] = useState<Workshop | null>(null);
     const [enrollments, setEnrollments] = useState<WorkshopEnrollment[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+
+    const [removeDialog, setRemoveDialog] = useState<{ open: boolean; videoId: string | null }>({
+        open: false,
+        videoId: null
+    });
 
     useEffect(() => {
         if (id) {
@@ -61,6 +68,20 @@ const WorkshopManagementPage = () => {
 
     const handleVideoPosted = () => {
         fetchData(); // Refresh to show new video count/list
+    };
+
+    const handleDeleteVideo = async (videoId: string) => {
+        try {
+            const result = await deleteVideo(videoId);
+            if (result.success) {
+                toast.success("Video deleted successfully");
+                fetchData(); // Refresh list
+            } else {
+                toast.error(result.message || "Failed to delete video");
+            }
+        } catch (error) {
+            toast.error("Failed to delete video");
+        }
     };
 
     if (isLoading) {
@@ -167,13 +188,13 @@ const WorkshopManagementPage = () => {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <VideoForm onVideoPosted={handleVideoPosted} workshopId={id} />
+                                <VideoForm onVideoPosted={handleVideoPosted} workshopId={id || ""} />
                             </CardContent>
                         </Card>
 
                         <Card>
                             <CardHeader>
-                                <CardTitle>Existing Videos</CardTitle>
+                                <CardTitle>Your Videos</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 {workshop.videos && workshop.videos.length > 0 ? (
@@ -181,14 +202,23 @@ const WorkshopManagementPage = () => {
                                         {workshop.videos.map((video) => (
                                             <div key={video.id} className="p-4 border rounded-lg flex justify-between items-center">
                                                 <span className="font-medium">{video.title}</span>
-                                                <a
-                                                    href={video.url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-sm text-indigo-600 hover:underline"
-                                                >
-                                                    View
-                                                </a>
+                                                <div className="flex items-center gap-3">
+                                                    <a
+                                                        href={video.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-sm text-indigo-600 hover:underline"
+                                                    >
+                                                        View
+                                                    </a>
+                                                    <Button
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        onClick={() => setRemoveDialog({ open: true, videoId: video.id })}
+                                                    >
+                                                        <p>Remove</p>
+                                                    </Button>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -200,6 +230,26 @@ const WorkshopManagementPage = () => {
                     </div>
                 </TabsContent>
             </Tabs>
+
+            <AlertDialog open={removeDialog.open} onOpenChange={(open) => setRemoveDialog({ open, videoId: null })}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Remove Video?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to remove this video? You can add it again later if you change your mind.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-destructive text-amber-50 hover:bg-destructive/90"
+                            onClick={() => removeDialog.videoId && handleDeleteVideo(removeDialog.videoId)}
+                        >
+                            Remove
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };

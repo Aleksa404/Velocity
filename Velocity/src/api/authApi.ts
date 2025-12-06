@@ -24,15 +24,12 @@ export const signup = async (registerUser: RegisterUser) => {
     return response.data;
   } catch (error: any) {
     if (error.response?.status === 400) {
-      // Return the error response data instead of throwing
       return {
         success: false,
-        message: error.response.data?.message || "Validation error",
+        message: error.response.data?.message,
         data: null,
       };
     }
-
-    // For other errors (network, 500, etc.), still throw
     throw error;
   }
 };
@@ -50,19 +47,17 @@ export const login = async (loginUser: LoginUser) => {
     if (!data) throw new Error("No data returned from server");
     const { user, accessToken } = data;
     setAccessToken(accessToken, user);
-    console.log(response + "de");
     return response.data;
+
   } catch (error: any) {
     if (error.response?.status === 400) {
-      // Return the error response data instead of throwing
       return {
         success: false,
-        message: error.response.data?.message || "Validation error",
+        message: error.response.data?.message,
         data: null,
       };
     }
 
-    // For other errors (network, 500, etc.), still throw
     throw error;
   }
 };
