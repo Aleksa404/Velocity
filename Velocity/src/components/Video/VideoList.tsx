@@ -9,7 +9,7 @@ const VideoList = ({ workshopId, refreshTrigger = 0 }: { workshopId: string, ref
     const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
 
     const fetchVideos = async () => {
-        // Don't set loading to true here to avoid UI flicker on background refresh
+        // loading not set to true here to avoid UI flicker on background refresh
         const result = await getVideos(workshopId);
         if (result.success) {
             setVideos(result.data);

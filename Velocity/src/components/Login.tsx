@@ -48,7 +48,6 @@ const LoginPage = () => {
   const onSubmit = async (data: LoginFormValues) => {
     setLoginError("");
     try {
-      // Pass rememberMe as false since it's not in the new design yet, or add it back if needed
       const result = await login(data);
 
       if (!result.success) {

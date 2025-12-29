@@ -17,9 +17,6 @@ const CreateWorkshopPage = () => {
     const [formData, setFormData] = useState({
         title: "",
         description: "",
-        date: "",
-        time: "",
-        capacity: "",
     });
 
     // Check if user is a trainer
@@ -30,7 +27,7 @@ const CreateWorkshopPage = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!formData.title || !formData.description || !formData.date || !formData.time) {
+        if (!formData.title || !formData.description) {
             toast.error("Please fill in all required fields");
             return;
         }
@@ -38,14 +35,9 @@ const CreateWorkshopPage = () => {
         setIsSubmitting(true);
 
         try {
-            // Combine date and time
-            const dateTime = new Date(`${formData.date}T${formData.time}`);
-
             const workshopData = {
                 title: formData.title,
                 description: formData.description,
-                date: dateTime.toISOString(),
-                capacity: formData.capacity ? parseInt(formData.capacity) : undefined,
             };
 
             const response = await createWorkshop(workshopData);
@@ -71,7 +63,7 @@ const CreateWorkshopPage = () => {
             <div className="flex flex-col gap-2">
                 <h1 className="text-3xl font-bold tracking-tight text-gray-900">Create Workshop</h1>
                 <p className="text-muted-foreground">
-                    Create a new workshop for your followers to enroll in.
+                    Create a new workshop for your followers to enroll in and access your content.
                 </p>
             </div>
 
@@ -79,7 +71,7 @@ const CreateWorkshopPage = () => {
                 <CardHeader>
                     <CardTitle>Workshop Details</CardTitle>
                     <CardDescription>
-                        Provide information about your workshop. Students will request to enroll and you can approve them.
+                        Provide information about your workshop. Students can request to enroll and you can approve them.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -107,48 +99,6 @@ const CreateWorkshopPage = () => {
                                 rows={5}
                                 required
                             />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="date">Date *</Label>
-                                <Input
-                                    id="date"
-                                    name="date"
-                                    type="date"
-                                    value={formData.date}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="time">Time *</Label>
-                                <Input
-                                    id="time"
-                                    name="time"
-                                    type="time"
-                                    value={formData.time}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="capacity">Maximum Capacity (Optional)</Label>
-                            <Input
-                                id="capacity"
-                                name="capacity"
-                                type="number"
-                                min="1"
-                                placeholder="Leave empty for unlimited"
-                                value={formData.capacity}
-                                onChange={handleChange}
-                            />
-                            <p className="text-xs text-muted-foreground">
-                                Set a maximum number of participants, or leave empty for unlimited enrollment.
-                            </p>
                         </div>
 
                         <div className="flex gap-3 pt-4">

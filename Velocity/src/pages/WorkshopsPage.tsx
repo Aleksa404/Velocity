@@ -5,25 +5,37 @@ import WorkshopCard from "../components/Workshop/WorkshopCard";
 import { toast } from "sonner";
 import { useUserStore } from "../stores/userStore";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Link } from "react-router";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 
 const WorkshopsPage = () => {
     const [workshops, setWorkshops] = useState<Workshop[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [filter, setFilter] = useState<"all" | "upcoming" | "past">("all");
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
     const user = useUserStore((state) => state.user);
+
+    // Debounce search query
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchQuery);
+            setCurrentPage(1); // Reset to first page on new search
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     useEffect(() => {
         fetchWorkshops();
-    }, [currentPage]);
+    }, [currentPage, debouncedSearch]);
 
     const fetchWorkshops = async () => {
         setIsLoading(true);
         try {
-            const response: any = await getAllWorkshops(currentPage);
+            const response: any = await getAllWorkshops(currentPage, 20, debouncedSearch);
             setWorkshops(response.data);
             if (response.pagination) {
                 setTotalPages(response.pagination.totalPages);
@@ -66,25 +78,6 @@ const WorkshopsPage = () => {
         }
     };
 
-    const filteredWorkshops = workshops.filter(workshop => {
-        const workshopDate = new Date(workshop.date);
-        const now = new Date();
-
-        if (filter === "upcoming") return workshopDate >= now;
-        if (filter === "past") return workshopDate < now;
-        return true;
-    });
-
-    if (isLoading) {
-        return (
-            <div className="container mx-auto p-6 max-w-7xl">
-                <div className="flex items-center justify-center h-64">
-                    <p className="text-muted-foreground">Loading workshops...</p>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="container mx-auto p-6 max-w-7xl space-y-6">
             <div className="flex items-center justify-between">
@@ -104,45 +97,39 @@ const WorkshopsPage = () => {
                 )}
             </div>
 
-            {/* Filter Tabs */}
-            <div className="flex gap-2 border-b">
-                <button
-                    onClick={() => setFilter("all")}
-                    className={`px-4 py-2 font-medium transition-colors ${filter === "all"
-                        ? "border-b-2 border-indigo-600 text-indigo-600"
-                        : "text-muted-foreground hover:text-gray-900"
-                        }`}
-                >
-                    All Workshops
-                </button>
-                <button
-                    onClick={() => setFilter("upcoming")}
-                    className={`px-4 py-2 font-medium transition-colors ${filter === "upcoming"
-                        ? "border-b-2 border-indigo-600 text-indigo-600"
-                        : "text-muted-foreground hover:text-gray-900"
-                        }`}
-                >
-                    Upcoming
-                </button>
-                <button
-                    onClick={() => setFilter("past")}
-                    className={`px-4 py-2 font-medium transition-colors ${filter === "past"
-                        ? "border-b-2 border-indigo-600 text-indigo-600"
-                        : "text-muted-foreground hover:text-gray-900"
-                        }`}
-                >
-                    Past
-                </button>
+            {/* Search Bar */}
+            <div className="relative max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                    type="text"
+                    placeholder="Search workshops..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 bg-gray-100 border-gray-300 focus:bg-white transition-colors"
+                />
+                {isLoading && searchQuery && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
+                    </div>
+                )}
             </div>
 
-            {filteredWorkshops.length === 0 ? (
+            {isLoading && !searchQuery ? (
+                <div className="flex items-center justify-center h-64">
+                    <p className="text-muted-foreground">Loading workshops...</p>
+                </div>
+            ) : workshops.length === 0 ? (
                 <div className="text-center py-12">
-                    <p className="text-muted-foreground">No workshops found.</p>
+                    <p className="text-muted-foreground">
+                        {debouncedSearch
+                            ? `No workshops found matching "${debouncedSearch}"`
+                            : "No workshops found."}
+                    </p>
                 </div>
             ) : (
                 <>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredWorkshops.map((workshop) => (
+                        {workshops.map((workshop) => (
                             <WorkshopCard
                                 key={workshop.id}
                                 workshop={workshop}
@@ -153,7 +140,7 @@ const WorkshopsPage = () => {
                     </div>
 
                     {/* Pagination Controls */}
-                    {totalPages > 0 && (
+                    {totalPages > 1 && (
                         <div className="flex justify-center items-center gap-2 mt-8">
                             <Button
                                 variant="outline"

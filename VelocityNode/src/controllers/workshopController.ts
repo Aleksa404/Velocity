@@ -1,17 +1,18 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import { ApiResponse } from "../types/ApiResponse";
+import { videoUploadQueue } from "../YoutubeUploadMQ/videoQueue";
 
 const prisma = new PrismaClient();
 
-// Create a workshop 
+
 export const createWorkshop = async (
     req: Request,
     res: Response<ApiResponse<any>>
 ) => {
     try {
         const { id: trainerId, role } = req.user!;
-        const { title, description, date, capacity } = req.body;
+        const { title, description } = req.body;
 
         if (role !== "TRAINER" && role !== "ADMIN") {
             return res.status(403).json({
@@ -25,8 +26,6 @@ export const createWorkshop = async (
             data: {
                 title,
                 description,
-                date: new Date(date),
-                capacity: capacity ? parseInt(capacity) : null,
                 trainerId,
             },
             include: {
@@ -64,7 +63,7 @@ export const createWorkshop = async (
     }
 };
 
-// Get all workshops
+
 export const getAllWorkshops = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -73,6 +72,7 @@ export const getAllWorkshops = async (
         const currentUserId = req.user?.id;
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 20;
+        const search = req.query.search as string || "";
         const skip = (page - 1) * limit;
 
         // If user is logged in, get trainers they follow
@@ -90,7 +90,7 @@ export const getAllWorkshops = async (
         followedTrainerIds = followedTrainers.map(f => f.trainerId);
 
 
-        // If user doesn't follow anyone, return empty
+
         if (followedTrainerIds.length === 0) {
             return res.status(200).json({
                 success: true,
@@ -105,11 +105,21 @@ export const getAllWorkshops = async (
             } as any);
         }
 
+        // Build where clause with optional search
+        const whereClause: any = {
+            trainerId: { in: followedTrainerIds },
+        };
+
+        if (search.trim()) {
+            whereClause.title = {
+                contains: search.trim(),
+                mode: "insensitive",
+            };
+        }
+
         const [workshops, total] = await Promise.all([
             prisma.workshop.findMany({
-                where: {
-                    trainerId: { in: followedTrainerIds },
-                },
+                where: whereClause,
                 skip: skip,
                 take: limit,
                 include: {
@@ -132,13 +142,11 @@ export const getAllWorkshops = async (
                     },
                 },
                 orderBy: {
-                    date: "desc",
+                    createdAt: "desc",
                 },
             }),
             prisma.workshop.count({
-                where: {
-                    trainerId: { in: followedTrainerIds },
-                },
+                where: whereClause,
             }),
         ]);
 
@@ -186,7 +194,7 @@ export const getAllWorkshops = async (
     }
 };
 
-// Get workshop by ID
+
 export const getWorkshopById = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -207,7 +215,7 @@ export const getWorkshopById = async (
                     },
                 },
                 videos: {
-                    orderBy: { uploadedAt: "desc" },
+                    orderBy: { uploadedAt: "asc" },
                     include: {
                         trainer: {
                             select: {
@@ -284,7 +292,7 @@ export const getWorkshopById = async (
     }
 };
 
-// Update workshop (owner only)
+
 export const updateWorkshop = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -292,7 +300,7 @@ export const updateWorkshop = async (
     try {
         const { id } = req.params;
         const { id: userId } = req.user!;
-        const { title, description, date, capacity } = req.body;
+        const { title, description } = req.body;
 
         const workshop = await prisma.workshop.findUnique({
             where: { id },
@@ -319,8 +327,6 @@ export const updateWorkshop = async (
             data: {
                 title,
                 description,
-                date: date ? new Date(date) : undefined,
-                capacity: capacity !== undefined ? (capacity ? parseInt(capacity) : null) : undefined,
             },
             include: {
                 trainer: {
@@ -357,7 +363,6 @@ export const updateWorkshop = async (
     }
 };
 
-// Delete workshop (owner only)
 export const deleteWorkshop = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -386,6 +391,29 @@ export const deleteWorkshop = async (
             });
         }
 
+        const videos = await prisma.video.findMany({
+            where: { workshopId: id },
+        });
+
+        // Queue delete jobs for each video
+        for (const video of videos) {
+            try {
+                const urlObj = new URL(video.url);
+                const youtubeId = urlObj.searchParams.get("v");
+
+                if (youtubeId) {
+                    await videoUploadQueue.add("video-delete", {
+                        type: 'delete',
+                        youtubeId,
+                        userId
+                    });
+                    console.log(`Queued YouTube delete for video: ${video.id} (${youtubeId})`);
+                }
+            } catch (err) {
+                console.error(`Failed to queue delete for video ${video.id}:`, err);
+            }
+        }
+
         await prisma.workshop.delete({
             where: { id },
         });
@@ -405,7 +433,6 @@ export const deleteWorkshop = async (
     }
 };
 
-// Enroll in workshop
 export const enrollInWorkshop = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -416,15 +443,6 @@ export const enrollInWorkshop = async (
 
         const workshop = await prisma.workshop.findUnique({
             where: { id: workshopId },
-            include: {
-                _count: {
-                    select: {
-                        enrollments: {
-                            where: { status: "APPROVED" },
-                        },
-                    },
-                },
-            },
         });
 
         if (!workshop) {
@@ -432,15 +450,6 @@ export const enrollInWorkshop = async (
                 success: false,
                 data: null,
                 message: "Workshop not found",
-            });
-        }
-
-        // Check if workshop is full
-        if (workshop.capacity && workshop._count.enrollments >= workshop.capacity) {
-            return res.status(400).json({
-                success: false,
-                data: null,
-                message: "Workshop is at full capacity",
             });
         }
 
@@ -506,7 +515,6 @@ export const enrollInWorkshop = async (
     }
 };
 
-// Get workshop enrollments (owner only)
 export const getWorkshopEnrollments = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -571,7 +579,7 @@ export const getWorkshopEnrollments = async (
     }
 };
 
-// Approve enrollment
+
 export const approveEnrollment = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -653,7 +661,6 @@ export const approveEnrollment = async (
     }
 };
 
-// Deny enrollment
 export const denyEnrollment = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -734,7 +741,7 @@ export const denyEnrollment = async (
         });
     }
 };
-// Get user's enrolled workshops
+
 export const getUserEnrollments = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -786,7 +793,7 @@ export const getUserEnrollments = async (
     }
 };
 
-// Unenroll from workshop
+
 export const unenrollFromWorkshop = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -829,6 +836,62 @@ export const unenrollFromWorkshop = async (
             success: false,
             data: null,
             message: error.message || "Failed to unenroll from workshop",
+        });
+    }
+};
+
+
+export const getMyWorkshops = async (
+    req: Request,
+    res: Response<ApiResponse<any>>
+) => {
+    try {
+        const { id: trainerId, role } = req.user!;
+
+        if (role !== "TRAINER" && role !== "ADMIN") {
+            return res.status(403).json({
+                success: false,
+                data: null,
+                message: "Only trainers can access their workshops",
+            });
+        }
+
+        const workshops = await prisma.workshop.findMany({
+            where: { trainerId },
+            include: {
+                trainer: {
+                    select: {
+                        id: true,
+                        first_name: true,
+                        last_name: true,
+                        email: true,
+                    },
+                },
+                _count: {
+                    select: {
+                        enrollments: {
+                            where: { status: "APPROVED" },
+                        },
+                        videos: true,
+                    },
+                },
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+        });
+
+        res.status(200).json({
+            success: true,
+            data: workshops,
+            message: "Your workshops fetched successfully",
+        });
+    } catch (error: any) {
+        console.error("Error fetching trainer workshops:", error);
+        res.status(500).json({
+            success: false,
+            data: null,
+            message: error.message || "Failed to fetch your workshops",
         });
     }
 };

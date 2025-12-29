@@ -7,17 +7,18 @@ import {
     denyTrainerRequest,
     getUserTrainerRequest,
 } from "../controllers/trainerRequestController";
-import { authenticateToken } from "../middleware/authMiddleware";
+import { authenticateToken, requireRole } from "../middleware/authMiddleware";
 
 const router = Router();
 
 router.use(authenticateToken);
 
 // User routes
-router.post("/", createTrainerRequest);
-router.get("/my-request", getUserTrainerRequest);
+router.post("/", requireRole("USER"), createTrainerRequest);
+router.get("/my-request", requireRole("USER"), getUserTrainerRequest);
 
 // Admin routes 
+router.use(requireRole("ADMIN"));
 router.get("/", getAllTrainerRequests);
 router.get("/pending", getPendingTrainerRequests);
 router.patch("/:id/approve", approveTrainerRequest);

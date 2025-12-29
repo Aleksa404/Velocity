@@ -14,6 +14,7 @@ import WorkshopsPage from "./pages/WorkshopsPage.tsx";
 import WorkshopDetailPage from "./pages/WorkshopDetailPage.tsx";
 import CreateWorkshopPage from "./pages/CreateWorkshopPage.tsx";
 import WorkshopManagementPage from "./pages/WorkshopManagementPage.tsx";
+import MyWorkshopsPage from "./pages/MyWorkshopsPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -28,6 +29,7 @@ const router = createBrowserRouter([
       { path: "trainers", element: <TrainersPage /> },
       { path: "trainers/:id", element: <TrainerProfilePage /> },
       { path: "workshops", element: <WorkshopsPage /> },
+      { path: "workshops/my", element: <MyWorkshopsPage /> },
       { path: "workshops/create", element: <CreateWorkshopPage /> },
       { path: "workshops/:id", element: <WorkshopDetailPage /> },
       { path: "workshops/:id/manage", element: <WorkshopManagementPage /> },

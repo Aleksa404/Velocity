@@ -1,24 +1,26 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, Navigate } from "react-router";
 import { getWorkshopById, enrollInWorkshop } from "../api/workshopApi";
 import type { Workshop } from "../Types/Workshop";
-// Video type is inferred from Workshop.videos
+import type { Video } from "../Types/Video";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Users, Video as VideoIcon, Clock, User } from "lucide-react";
+import { Users, Video as VideoIcon, User, Play, Check, ChevronDown, ChevronUp, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { useUserStore } from "../stores/userStore";
 import { Link } from "react-router";
-import VideoCard from "../components/Video/VideoCard";
+import VideoPlayer from "../components/Video/VideoPlayer";
 
 const WorkshopDetailPage = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [workshop, setWorkshop] = useState<Workshop | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
+    const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
     const user = useUserStore((state) => state.user);
+    const videoSectionRef = useRef<HTMLDivElement>(null);
 
     const [isEnrolling, setIsEnrolling] = useState(false);
 
@@ -27,6 +29,13 @@ const WorkshopDetailPage = () => {
             fetchWorkshop();
         }
     }, [id]);
+
+    // Auto-select first video when workshop loads
+    useEffect(() => {
+        if (workshop?.videos && workshop.videos.length > 0 && !selectedVideoId) {
+            setSelectedVideoId(workshop.videos[0].id);
+        }
+    }, [workshop?.videos, selectedVideoId]);
 
     const fetchWorkshop = async () => {
         try {
@@ -52,12 +61,10 @@ const WorkshopDetailPage = () => {
             await enrollInWorkshop(id);
             toast.success("Enrollment request submitted! Waiting for trainer approval.");
 
-            // Update workshop enrollment status
             if (workshop) {
                 setWorkshop({
                     ...workshop,
                     enrollmentStatus: "PENDING",
-
                 });
             }
         } catch (error: any) {
@@ -65,66 +72,13 @@ const WorkshopDetailPage = () => {
         }
     };
 
-    if (isLoading) {
-        return (
-            <div className="container mx-auto p-6 max-w-5xl">
-                <div className="flex items-center justify-center h-64">
-                    <p className="text-muted-foreground">Loading workshop...</p>
-                </div>
-            </div>
-        );
-    }
-
-    if (!workshop) {
-        return <Navigate to="/workshops" />;
-    }
-
-    const workshopDate = new Date(workshop.date);
-    const isPast = workshopDate < new Date();
-    const isUpcoming = !isPast;
-    const isFull = workshop.capacity && workshop._count && workshop._count.enrollments >= workshop.capacity;
-    const isOwner = user && user.id === workshop.trainerId;
-
-    const getEnrollmentButton = () => {
-        if (!user || user.role !== "USER") return null;
-
-        if (workshop.enrollmentStatus === "APPROVED") {
-            return (
-                <Badge className="bg-green-100 text-green-800 text-base px-6 py-3">
-                    ✓ You are enrolled
-                </Badge>
-            );
+    const handleVideoSelect = (videoId: string) => {
+        setSelectedVideoId(videoId);
+        setIsPlaying(true);
+        // Scroll to video player on mobile
+        if (window.innerWidth < 1024) {
+            videoSectionRef.current?.scrollIntoView({ behavior: "smooth" });
         }
-
-        if (workshop.enrollmentStatus === "PENDING") {
-            return (
-                <Badge className="bg-yellow-100 text-yellow-800 text-base px-6 py-3">
-                    ⏳ Pending Approval
-                </Badge>
-            );
-        }
-
-        if (workshop.enrollmentStatus === "DENIED") {
-            return (
-                <Badge className="bg-red-100 text-red-800 text-base px-6 py-3">
-                    ✗ Request Denied
-                </Badge>
-            );
-        }
-
-        return (
-            <Button
-                onClick={async () => {
-                    setIsEnrolling(true);
-                    await handleEnroll();
-                    setIsEnrolling(false);
-                }}
-                disabled={isFull || isPast || isEnrolling}
-                size="lg"
-            >
-                {isEnrolling ? "Requesting..." : isFull ? "Workshop Full" : isPast ? "Past Workshop" : "Request to Enroll"}
-            </Button>
-        );
     };
 
     const handleProgressUpdate = (videoId: string, watchedSeconds: number, percent: number) => {
@@ -136,7 +90,7 @@ const WorkshopDetailPage = () => {
             const updatedVideos = prev.videos.map(v => {
                 if (v.id === videoId) {
                     const currentProgress = v.watchProgress?.[0] || {
-                        id: "temp", // Temporary ID until refresh
+                        id: "temp",
                         userId: user?.id || "",
                         videoId: videoId,
                         watchedSeconds: 0,
@@ -152,6 +106,7 @@ const WorkshopDetailPage = () => {
                             ...currentProgress,
                             watchedSeconds,
                             percentWatched: percent,
+                            isCompleted: percent >= 95,
                             lastWatchedAt: new Date().toISOString()
                         }]
                     };
@@ -166,178 +121,356 @@ const WorkshopDetailPage = () => {
         });
     };
 
-    return (
-        <div className="container mx-auto p-6 max-w-6xl space-y-8">
-            {/*Header Section */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 text-white shadow-xl">
-                <div className="absolute inset-0 bg-black/10" />
-                <div className="relative p-8 md:p-12">
-                    <div className="flex flex-col md:flex-row justify-between items-start gap-6">
-                        <div className="space-y-4 flex-1">
-                            <div className="flex items-center gap-3">
-                                <Badge className={`text-sm px-3 py-1 ${isUpcoming ? "bg-green-400/20 text-green-50 border-green-400/30" : "bg-white/20 text-white border-white/20"}`}>
-                                    {isUpcoming ? "Upcoming Workshop" : "Past Workshop"}
-                                </Badge>
-                                {workshop.capacity && (
-                                    <Badge variant="outline" className="text-white border-white/30">
-                                        {workshop.capacity - (workshop._count?.enrollments || 0)} spots left
-                                    </Badge>
-                                )}
-                            </div>
+    const handleVideoComplete = () => {
+        fetchWorkshop();
+        // Auto-play next video
+        if (workshop?.videos && selectedVideoId) {
+            const currentIndex = workshop.videos.findIndex(v => v.id === selectedVideoId);
+            if (currentIndex < workshop.videos.length - 1) {
+                const nextVideo = workshop.videos[currentIndex + 1];
+                setSelectedVideoId(nextVideo.id);
+                toast.success("Moving to next video!");
+            }
+        }
+    };
 
-                            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white">
+    if (isLoading) {
+        return (
+            <div className="container mx-auto p-6 max-w-7xl">
+                <div className="flex items-center justify-center h-64">
+                    <p className="text-muted-foreground">Loading workshop...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!workshop) {
+        return <Navigate to="/workshops" />;
+    }
+
+    const isOwner = user && user.id === workshop.trainerId;
+    const selectedVideo = workshop.videos?.find(v => v.id === selectedVideoId);
+    const completedCount = workshop.videos?.filter(v => v.watchProgress?.[0]?.isCompleted).length || 0;
+    const totalVideos = workshop.videos?.length || 0;
+    const overallProgress = totalVideos > 0 ? Math.round((completedCount / totalVideos) * 100) : 0;
+
+    const getEnrollmentButton = () => {
+        if (!user || user.role !== "USER") return null;
+
+        if (workshop.enrollmentStatus === "APPROVED") {
+            return (
+                <Badge className="bg-green-100 text-green-800 text-sm px-4 py-2">
+                    ✓ Enrolled
+                </Badge>
+            );
+        }
+
+        if (workshop.enrollmentStatus === "PENDING") {
+            return (
+                <Badge className="bg-yellow-100 text-yellow-800 text-sm px-4 py-2">
+                    ⏳ Pending
+                </Badge>
+            );
+        }
+
+        if (workshop.enrollmentStatus === "DENIED") {
+            return (
+                <Badge className="bg-red-100 text-red-800 text-sm px-4 py-2">
+                    ✗ Denied
+                </Badge>
+            );
+        }
+
+        return (
+            <Button
+                onClick={async () => {
+                    setIsEnrolling(true);
+                    await handleEnroll();
+                    setIsEnrolling(false);
+                }}
+                disabled={isEnrolling}
+                size="sm"
+            >
+                {isEnrolling ? "Requesting..." : "Enroll"}
+            </Button>
+        );
+    };
+
+    const getYoutubeId = (url: string) => url.split("v=")[1];
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            {/* Compact Header */}
+            <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white">
+                <div className="container mx-auto px-4 py-4 max-w-7xl">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                            <h1 className="text-xl md:text-2xl font-bold truncate">
                                 {workshop.title}
                             </h1>
-
-                            <div className="flex items-center gap-2 text-indigo-100 text-lg">
-                                <User className="w-5 h-5" />
-                                <span>Led by</span>
-                                <Link
-                                    to={`/trainers/${workshop.trainer?.id}`}
-                                    className="font-semibold hover:text-white underline-offset-4 hover:underline transition-colors"
-                                >
-                                    {workshop.trainer?.first_name} {workshop.trainer?.last_name}
-                                </Link>
-                            </div>
+                            <Link
+                                to={`/trainers/${workshop.trainer?.id}`}
+                                className="text-indigo-100 text-sm hover:text-white transition-colors"
+                            >
+                                by {workshop.trainer?.first_name} {workshop.trainer?.last_name}
+                            </Link>
                         </div>
-
-                        <div className="flex-shrink-0">
+                        <div className="flex items-center gap-3">
                             {getEnrollmentButton()}
+                            {isOwner && (
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={() => navigate(`/workshops/${workshop.id}/manage`)}
+                                >
+                                    Manage
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Main Content - Left Column */}
-                <div className="lg:col-span-2 space-y-8">
-                    {/*Description */}
-                    <Card className="border-none shadow-sm bg-white/50 backdrop-blur-sm">
-                        <CardHeader>
-                            <CardTitle className="text-xl flex items-center gap-2">
-                                <span>About this Workshop</span>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="prose prose-slate max-w-none">
-                                <p className="text-slate-600 leading-relaxed text-lg whitespace-pre-wrap">
+            <div className="container mx-auto px-4 py-6 max-w-7xl">
+                <div className="flex flex-col lg:flex-row gap-6">
+                    {/* Left Sidebar - workshop Content */}
+
+                    <div className="lg:w-80 xl:w-96 flex-shrink-0 order-2 lg:order-1">
+                        <Card>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-lg">About this Workshop</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-gray-600 whitespace-pre-wrap">
                                     {workshop.description}
                                 </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Videos Section - Larger Grid */}
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h2 className="text-2xl font-bold tracking-tight">Workshop Videos</h2>
-                                <p className="text-muted-foreground mt-1">
-                                    {workshop.videos && workshop.videos.length > 0
-                                        ? "Watch the sessions and materials included in this workshop."
-                                        : "No videos have been added yet."}
-                                </p>
-                            </div>
-                            <Badge variant="secondary" className="text-sm px-3 py-1">
-                                {workshop._count?.videos || 0} Videos
-                            </Badge>
-                        </div>
-
-                        {workshop.videos && workshop.videos.length > 0 ? (
-                            <div className="grid grid-cols-1 gap-8">
-                                {workshop.videos.map((video) => (
-                                    <div key={video.id} className="group">
-                                        <VideoCard
-                                            video={video}
-                                            isPlaying={playingVideoId === video.id}
-                                            onPlay={() => setPlayingVideoId(video.id)}
-                                            onComplete={() => fetchWorkshop()}
-                                            onProgressUpdate={(seconds, percent) =>
-                                                handleProgressUpdate(video.id, seconds, percent)
-                                            }
+                                <div className="flex items-center gap-4 mt-4 pt-4 border-t text-sm text-muted-foreground">
+                                    <div className="flex items-center gap-1">
+                                        <Users className="w-4 h-4" />
+                                        {workshop._count?.enrollments || 0} enrolled
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <VideoIcon className="w-4 h-4" />
+                                        {totalVideos} videos
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card className="sticky top-4">
+                            <CardHeader className="pb-3">
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <BookOpen className="w-5 h-5" />
+                                        Workshop Content
+                                    </CardTitle>
+                                    <Badge variant="secondary" className="text-xs">
+                                        {completedCount}/{totalVideos}
+                                    </Badge>
+                                </div>
+                                {/* Overall Progress Bar */}
+                                <div className="mt-3">
+                                    <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                                        <span>{overallProgress}% complete</span>
+                                        <span>{completedCount} of {totalVideos} sections</span>
+                                    </div>
+                                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-gradient-to-r from-green-400 to-green-500 transition-all duration-300"
+                                            style={{ width: `${overallProgress}%` }}
                                         />
                                     </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <Card className="border-dashed">
-                                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                                    <VideoIcon className="w-12 h-12 text-muted-foreground/50 mb-4" />
-                                    <p className="text-lg font-medium text-muted-foreground">No videos available yet</p>
-                                    <p className="text-sm text-muted-foreground/80">Check back later for content updates.</p>
-                                </CardContent>
-                            </Card>
-                        )}
-                    </div>
-                </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                {workshop.videos && workshop.videos.length > 0 ? (
+                                    <div className="divide-y">
+                                        {workshop.videos.map((video, index) => {
+                                            const progress = video.watchProgress?.[0];
+                                            const isCompleted = progress?.isCompleted;
+                                            const percentWatched = progress?.percentWatched || 0;
+                                            const isSelected = video.id === selectedVideoId;
 
-                {/* Right Column */}
-                <div className="space-y-6">
-                    <Card className="sticky top-6">
-                        <CardHeader>
-                            <CardTitle className="text-lg">Workshop Details</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="flex items-start gap-4">
-                                <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-lg">
-                                    <Calendar className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <p className="font-medium text-sm text-muted-foreground">Date</p>
-                                    <p className="font-semibold text-gray-900">{workshopDate.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                                </div>
-                            </div>
+                                            return (
+                                                <button
+                                                    key={video.id}
+                                                    onClick={() => handleVideoSelect(video.id)}
+                                                    className={`w-full text-left p-4 hover:bg-gray-50 transition-colors ${isSelected ? 'bg-indigo-50 border-l-4 border-indigo-500' : ''
+                                                        }`}
+                                                >
+                                                    <div className="flex items-start gap-3">
+                                                        {/* Section Number / Status */}
+                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isCompleted
+                                                            ? 'bg-green-500 text-white'
+                                                            : isSelected
+                                                                ? 'bg-indigo-500 text-white'
+                                                                : 'bg-gray-200 text-gray-600'
+                                                            }`}>
+                                                            {isCompleted ? (
+                                                                <Check className="w-4 h-4" />
+                                                            ) : (
+                                                                <span className="text-sm font-medium">{index + 1}</span>
+                                                            )}
+                                                        </div>
 
-                            <div className="flex items-start gap-4">
-                                <div className="p-2.5 bg-purple-50 text-purple-600 rounded-lg">
-                                    <Clock className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <p className="font-medium text-sm text-muted-foreground">Time</p>
-                                    <p className="font-semibold text-gray-900">{workshopDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                                </div>
-                            </div>
+                                                        {/* Video Info */}
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className={`text-sm font-medium line-clamp-2 ${isSelected ? 'text-indigo-700' : 'text-gray-900'
+                                                                }`}>
+                                                                {video.title}
+                                                            </p>
 
-                            <div className="flex items-start gap-4">
-                                <div className="p-2.5 bg-pink-50 text-pink-600 rounded-lg">
-                                    <Users className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <p className="font-medium text-sm text-muted-foreground">Enrollment</p>
-                                    <div className="flex items-center gap-2">
-                                        <p className="font-semibold text-gray-900">
-                                            {workshop._count?.enrollments || 0} enrolled
-                                        </p>
-                                        {workshop.capacity && (
-                                            <span className="text-xs text-muted-foreground">
-                                                (Cap: {workshop.capacity})
-                                            </span>
-                                        )}
+                                                            {/* Progress indicator */}
+                                                            {percentWatched > 0 && !isCompleted && (
+                                                                <div className="mt-2">
+                                                                    <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
+                                                                        <div
+                                                                            className="h-full bg-indigo-400"
+                                                                            style={{ width: `${percentWatched}%` }}
+                                                                        />
+                                                                    </div>
+                                                                    <span className="text-xs text-muted-foreground mt-1">
+                                                                        {percentWatched}% watched
+                                                                    </span>
+                                                                </div>
+                                                            )}
+
+                                                            {isCompleted && (
+                                                                <span className="text-xs text-green-600 mt-1 inline-block">
+                                                                    Completed
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Play indicator */}
+                                                        {isSelected && isPlaying && (
+                                                            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                                                        )}
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
                                     </div>
-                                    {workshop.capacity && (
-                                        <div className="mt-2 h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-gradient-to-r from-indigo-500 to-pink-500"
-                                                style={{ width: `${Math.min(((workshop._count?.enrollments || 0) / workshop.capacity) * 100, 100)}%` }}
+                                ) : (
+                                    <div className="p-8 text-center text-muted-foreground">
+                                        <VideoIcon className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                                        <p className="text-sm">No videos yet</p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Main Content - Video Player */}
+                    <div className="flex-1 order-1 lg:order-2 min-w-0" ref={videoSectionRef}>
+                        {selectedVideo ? (
+                            <div className="space-y-4">
+                                {/* Video Player */}
+                                <div className="aspect-video w-full bg-black rounded-xl overflow-hidden shadow-lg">
+                                    {isPlaying && getYoutubeId(selectedVideo.url) ? (
+                                        <VideoPlayer
+                                            key={selectedVideo.id}
+                                            videoId={getYoutubeId(selectedVideo.url)}
+                                            dbVideoId={selectedVideo.id}
+                                            initialProgress={selectedVideo.watchProgress?.[0]?.watchedSeconds || 0}
+                                            onComplete={handleVideoComplete}
+                                            onProgressUpdate={(seconds, percent) =>
+                                                handleProgressUpdate(selectedVideo.id, seconds, percent)
+                                            }
+                                        />
+                                    ) : (
+                                        <div
+                                            className="w-full h-full relative cursor-pointer group"
+                                            onClick={() => setIsPlaying(true)}
+                                        >
+                                            <img
+                                                src={`https://img.youtube.com/vi/${getYoutubeId(selectedVideo.url)}/maxresdefault.jpg`}
+                                                alt={selectedVideo.title}
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${getYoutubeId(selectedVideo.url)}/hqdefault.jpg`;
+                                                }}
                                             />
+                                            <div className="absolute inset-0 bg-black/30 flex items-center justify-center group-hover:bg-black/20 transition-colors">
+                                                <div className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
+                                                    <Play className="w-8 h-8 text-black ml-1" fill="currentColor" />
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
-                            </div>
 
-                            {isOwner && (
-                                <div className="pt-6 border-t mt-6">
-                                    <Button
-                                        variant="outline"
-                                        className="w-full"
-                                        onClick={() => navigate(`/workshops/${workshop.id}/manage`)}
-                                    >
-                                        Manage Workshop
-                                    </Button>
+                                {/* Video Details */}
+                                <Card>
+                                    <CardContent className="p-6">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="flex-1">
+                                                <h2 className="text-2xl font-bold text-gray-900">
+                                                    {selectedVideo.title}
+                                                </h2>
+                                                <p className="text-sm text-muted-foreground mt-1">
+                                                    Section {(workshop.videos?.findIndex(v => v.id === selectedVideoId) || 0) + 1} of {totalVideos}
+                                                </p>
+                                            </div>
+                                            {selectedVideo.watchProgress?.[0]?.isCompleted && (
+                                                <Badge className="bg-green-100 text-green-700">
+                                                    <Check className="w-3 h-3 mr-1" /> Completed
+                                                </Badge>
+                                            )}
+                                        </div>
+
+                                        {selectedVideo.description && (
+                                            <div className="mt-4">
+
+
+                                                <p className="mt-3 text-gray-600 whitespace-pre-wrap">
+                                                    {selectedVideo.description}
+                                                </p>
+
+                                            </div>
+                                        )}
+
+                                        {/* Navigation Buttons */}
+                                        <div className="flex justify-between mt-6 pt-6 border-t">
+                                            <Button
+                                                variant="outline"
+                                                disabled={!workshop.videos || workshop.videos.findIndex(v => v.id === selectedVideoId) === 0}
+                                                onClick={() => {
+                                                    const currentIndex = workshop.videos?.findIndex(v => v.id === selectedVideoId) || 0;
+                                                    if (workshop.videos && currentIndex > 0) {
+                                                        handleVideoSelect(workshop.videos[currentIndex - 1].id);
+                                                    }
+                                                }}
+                                            >
+                                                ← Previous
+                                            </Button>
+                                            <Button
+                                                disabled={!workshop.videos || workshop.videos.findIndex(v => v.id === selectedVideoId) === workshop.videos.length - 1}
+                                                onClick={() => {
+                                                    const currentIndex = workshop.videos?.findIndex(v => v.id === selectedVideoId) || 0;
+                                                    if (workshop.videos && currentIndex < workshop.videos.length - 1) {
+                                                        handleVideoSelect(workshop.videos[currentIndex + 1].id);
+                                                    }
+                                                }}
+                                            >
+                                                Next →
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+
+
+                            </div>
+                        ) : (
+                            <Card className="h-96 flex items-center justify-center">
+                                <div className="text-center text-muted-foreground">
+                                    <VideoIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                                    <p className="text-lg font-medium">No videos available</p>
+                                    <p className="text-sm mt-1">Check back later for content updates.</p>
                                 </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                            </Card>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

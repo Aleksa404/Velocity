@@ -13,7 +13,6 @@ export const createVideo = async (data: FormData) => {
     }
 };
 
-// Video deletion
 export const deleteVideo = async (videoId: string) => {
     try {
         const response = await axiosInstance.delete(`/videos/${videoId}`);
@@ -38,7 +37,6 @@ export const getVideos = async (workshopId: string) => {
     }
 };
 
-// Video progress tracking
 export const updateVideoProgress = async (videoId: string, data: {
     watchedSeconds: number;
     totalDuration: number;

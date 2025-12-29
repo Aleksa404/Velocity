@@ -38,6 +38,15 @@ export const videoUploadWorker = new Worker<VideoJobData>(
                         ? `${description}\n\nUploaded via Velocity for: ${workshop.title}`
                         : `Uploaded via Velocity for: ${workshop.title}`;
 
+                    console.log(`[Job ${job.id}] Verifying credentials...`);
+                    // Force a token refresh check or at least verify client has credentials
+                    const creds = await oauth2Client.getAccessToken(); // This might trigger refresh
+                    console.log(`[Job ${job.id}] Creds valid? ${!!creds.token}`);
+
+                    console.log(`[Job ${job.id}] Starting YouTube upload...`);
+                    const fileSize = fs.statSync(filePath).size;
+                    console.log(`[Job ${job.id}] File size: ${(fileSize / 1024 / 1024).toFixed(2)} MB`);
+
                     const resYoutube = await youtube.videos.insert({
                         auth: oauth2Client,
                         part: ["snippet", "status"],
@@ -51,9 +60,13 @@ export const videoUploadWorker = new Worker<VideoJobData>(
                         media: { body: fs.createReadStream(filePath) },
                     });
 
+                    console.log(`[Job ${job.id}] Upload request completed. Status: ${resYoutube.status}`);
+
                     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 
                     const youtubeId = resYoutube.data.id;
+                    if (!youtubeId) throw new Error("No YouTube ID returned");
+
                     const video = await prisma.video.create({
                         data: {
                             title,
@@ -63,9 +76,14 @@ export const videoUploadWorker = new Worker<VideoJobData>(
                             workshopId,
                         },
                     });
-                    console.log(`Video uploaded: ${video.id}`);
+                    console.log(`[Job ${job.id}] Video saved to DB: ${video.id}`);
                     return video;
-                } catch (error) {
+                } catch (error: any) {
+                    console.error(`[Job ${job.id}] Upload FAILED:`, error);
+                    // Log specific axios/google error details if available
+                    if (error.response) {
+                        console.error(`[Job ${job.id}] API Error Data:`, error.response.data);
+                    }
                     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
                     throw error;
                 }
@@ -88,6 +106,6 @@ export const videoUploadWorker = new Worker<VideoJobData>(
     },
     {
         connection: redisClient,
-        concurrency: 1, // Upload one at a time to avoid bandwidth/quota issues
+        concurrency: 5, // Process multiple jobs in parallel
     }
 );

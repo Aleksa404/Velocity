@@ -7,7 +7,6 @@ interface ApiResponse<T> {
     message: string;
 }
 
-// Get all trainers
 export const getAllTrainers = async (page: number = 1, limit: number = 12) => {
     const response = await axiosInstance.get<ApiResponse<{
         trainers: Trainer[];
@@ -18,7 +17,6 @@ export const getAllTrainers = async (page: number = 1, limit: number = 12) => {
     return response.data;
 };
 
-// Search trainers
 export const searchTrainers = async (query: string) => {
     const response = await axiosInstance.get<ApiResponse<Trainer[]>>(`/trainers/search`, {
         params: { query },
@@ -26,19 +24,16 @@ export const searchTrainers = async (query: string) => {
     return response.data;
 };
 
-// Get trainer profile by ID
 export const getTrainerProfile = async (trainerId: string) => {
     const response = await axiosInstance.get<ApiResponse<Trainer>>(`/trainers/${trainerId}`);
     return response.data;
 };
 
-// Follow a trainer
 export const followTrainer = async (trainerId: string) => {
     const response = await axiosInstance.post<ApiResponse<Follow>>(`/trainers/${trainerId}/follow`);
     return response.data;
 };
 
-// Unfollow a trainer
 export const unfollowTrainer = async (trainerId: string) => {
     const response = await axiosInstance.delete<ApiResponse<null>>(`/trainers/${trainerId}/follow`);
     return response.data;

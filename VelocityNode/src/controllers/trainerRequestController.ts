@@ -4,7 +4,7 @@ import { ApiResponse } from "../types/ApiResponse";
 
 const prisma = new PrismaClient();
 
-// Create a trainer request
+
 export const createTrainerRequest = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -72,7 +72,7 @@ export const createTrainerRequest = async (
     }
 };
 
-// Get all trainer requests (admin only)
+// admin only
 export const getAllTrainerRequests = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -110,7 +110,7 @@ export const getAllTrainerRequests = async (
     }
 };
 
-// Get pending trainer requests (admin only)
+//admin only
 export const getPendingTrainerRequests = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -151,7 +151,7 @@ export const getPendingTrainerRequests = async (
     }
 };
 
-// Approve a trainer request
+
 export const approveTrainerRequest = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -218,7 +218,6 @@ export const approveTrainerRequest = async (
     }
 };
 
-// Deny a trainer request
 export const denyTrainerRequest = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -277,7 +276,7 @@ export const denyTrainerRequest = async (
     }
 };
 
-// Get current user's trainer request
+
 export const getUserTrainerRequest = async (
     req: Request,
     res: Response<ApiResponse<any>>

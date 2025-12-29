@@ -35,8 +35,8 @@ const TrainerDashboard = () => {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button variant="outline" onClick={() => navigate("/workshops")}>
-                            View All Workshops
+                        <Button variant="outline" onClick={() => navigate("/workshops/my")}>
+                            View My Workshops
                         </Button>
                     </CardContent>
                 </Card>

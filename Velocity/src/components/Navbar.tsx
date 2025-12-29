@@ -14,8 +14,26 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+    SheetDescription,
+} from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User as UserIcon, Settings, Search } from "lucide-react";
+import {
+    LogOut,
+    User as UserIcon,
+    Settings,
+    Search,
+    Menu,
+    Home,
+    Users,
+    BookOpen,
+    FolderOpen
+} from "lucide-react";
 
 const Navbar = () => {
     const user = useUserStore((state) => state.user);
@@ -65,9 +83,61 @@ const Navbar = () => {
     return (
         <nav className="border-b bg-white/75 backdrop-blur-md sticky top-0 z-50">
             <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+                {/* Mobile Menu Trigger */}
+                {user && (
+                    <div className="md:hidden mr-2">
+                        <Sheet>
+                            <SheetTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    <Menu className="h-6 w-6" />
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+                                <SheetHeader className="text-left mb-6">
+                                    <SheetTitle className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                                        Velocity
+                                    </SheetTitle>
+                                    <SheetDescription className="sr-only">
+                                        Navigation menu for mobile devices
+                                    </SheetDescription>
+                                </SheetHeader>
+                                <div className="flex flex-col gap-2">
+                                    <Button variant="ghost" className="justify-start gap-2" onClick={() => navigate("/")}>
+                                        <Home className="h-5 w-5" />
+                                        Dashboard
+                                    </Button>
+                                    <Button variant="ghost" className="justify-start gap-2" onClick={() => navigate("/trainers")}>
+                                        <Users className="h-5 w-5" />
+                                        Browse Trainers
+                                    </Button>
+                                    <Button variant="ghost" className="justify-start gap-2" onClick={() => navigate("/workshops")}>
+                                        <BookOpen className="h-5 w-5" />
+                                        Workshops
+                                    </Button>
+                                    {(user.role === "TRAINER" || user.role === "ADMIN") && (
+                                        <Button variant="ghost" className="justify-start gap-2" onClick={() => navigate("/workshops/my")}>
+                                            <FolderOpen className="h-5 w-5" />
+                                            My Workshops
+                                        </Button>
+                                    )}
+                                    <div className="my-4 border-t" />
+                                    <Button variant="ghost" className="justify-start gap-2" onClick={() => navigate("/profile")}>
+                                        <UserIcon className="h-5 w-5" />
+                                        Profile
+                                    </Button>
+                                    <Button variant="ghost" className="justify-start gap-2" onClick={() => navigate("/settings")}>
+                                        <Settings className="h-5 w-5" />
+                                        Settings
+                                    </Button>
+                                </div>
+                            </SheetContent>
+                        </Sheet>
+                    </div>
+                )}
+
                 {/* Logo Section */}
                 <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
-                    <img src={Logo} alt="Logo" className="w-8 h-8 rounded-md object-cover" />
+                    <img src={Logo} alt="Logo" className="hidden md:block w-8 h-8 rounded-md object-cover" />
                     <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                         Velocity
                     </span>
@@ -75,7 +145,7 @@ const Navbar = () => {
 
                 {/* Search Bar */}
                 {user &&
-                    <div className="relative hidden md:block w-96 mx-4">
+                    <div className="relative w-96 mx-4">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                             <Input
@@ -126,7 +196,7 @@ const Navbar = () => {
                         )}
 
 
-                        {/* Click outside to close - simplifed by using onBlur on input or separate overlay, for now relying on click selection */}
+                        {/* Click outside to close */}
                         {showResults && (
                             <div
                                 className="fixed inset-0 z-40 bg-transparent"
@@ -135,23 +205,7 @@ const Navbar = () => {
                         )}
                     </div>}
 
-                {/* Navigation Links */}
-                {user && (
-                    <div className="flex items-center gap-6">
-                        <button
-                            onClick={() => navigate("/trainers")}
-                            className="text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors"
-                        >
-                            Browse Trainers
-                        </button>
-                        <button
-                            onClick={() => navigate("/workshops")}
-                            className="text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors"
-                        >
-                            Workshops
-                        </button>
-                    </div>
-                )}
+
 
                 {/* Right Section */}
                 <div className="flex items-center gap-4">

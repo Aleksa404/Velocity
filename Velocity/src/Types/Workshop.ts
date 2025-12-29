@@ -4,8 +4,6 @@ export interface Workshop {
     id: string;
     title: string;
     description: string;
-    date: string;
-    capacity?: number | null;
     createdAt: string;
     updatedAt: string;
     trainerId: string;

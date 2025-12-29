@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Calendar, User, X, Video } from "lucide-react";
+import { Loader2, User, Video } from "lucide-react";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -140,10 +140,7 @@ const UserDashboard = () => {
                                             </CardTitle>
                                             {getStatusBadge(enrollment.status)}
                                         </div>
-                                        <CardDescription className="flex items-center mt-2">
-                                            <Calendar className="h-4 w-4 mr-2" />
-                                            {enrollment.workshop?.date && new Date(enrollment.workshop.date).toLocaleDateString()}
-                                        </CardDescription>
+
                                     </CardHeader>
                                     <CardContent>
                                         <div className="space-y-4">

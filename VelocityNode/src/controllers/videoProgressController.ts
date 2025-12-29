@@ -4,7 +4,7 @@ import { ApiResponse } from "../types/ApiResponse";
 
 const prisma = new PrismaClient();
 
-// Update video watch progress
+
 export const updateVideoProgress = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -71,7 +71,7 @@ export const updateVideoProgress = async (
     }
 };
 
-// Get progress for a specific video
+
 export const getVideoProgress = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -104,7 +104,7 @@ export const getVideoProgress = async (
     }
 };
 
-// Get continue watching (videos in progress, not completed)
+
 export const getContinueWatching = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -161,7 +161,7 @@ export const getContinueWatching = async (
     }
 };
 
-// Mark video as completed
+
 export const markVideoComplete = async (
     req: Request,
     res: Response<ApiResponse<any>>

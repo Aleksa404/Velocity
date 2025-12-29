@@ -4,7 +4,7 @@ import { ApiResponse } from "../types/ApiResponse";
 
 const prisma = new PrismaClient();
 
-// Get all trainers
+
 export const getAllTrainers = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -94,7 +94,7 @@ export const getAllTrainers = async (
     }
 };
 
-// Search trainers
+
 export const searchTrainers = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -144,7 +144,7 @@ export const searchTrainers = async (
     }
 };
 
-// Get trainer profile by ID
+
 export const getTrainerProfile = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -167,7 +167,7 @@ export const getTrainerProfile = async (
                     take: 10,
                 },
                 workshops: {
-                    orderBy: { date: "desc" },
+                    orderBy: { createdAt: "desc" },
                     include: {
                         _count: {
                             select: {
@@ -232,7 +232,7 @@ export const getTrainerProfile = async (
     }
 };
 
-// Follow a trainer
+
 export const followTrainer = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -312,7 +312,7 @@ export const followTrainer = async (
     }
 };
 
-// Unfollow a trainer
+
 export const unfollowTrainer = async (
     req: Request,
     res: Response<ApiResponse<any>>

@@ -11,8 +11,9 @@ import {
     denyEnrollment,
     getUserEnrollments,
     unenrollFromWorkshop,
+    getMyWorkshops,
 } from "../controllers/workshopController";
-import { authenticateToken } from "../middleware/authMiddleware";
+import { authenticateToken, requireRole } from "../middleware/authMiddleware";
 
 const router = Router();
 
@@ -21,21 +22,22 @@ router.use(authenticateToken);
 
 
 router.get("/my/enrollments", getUserEnrollments);
+router.get("/my", getMyWorkshops);
 
 
 // Workshop CRUD
 router.get("/", getAllWorkshops);
 router.get("/:id", getWorkshopById);
-router.post("/", createWorkshop);
-router.patch("/:id", updateWorkshop);
-router.delete("/:id", deleteWorkshop);
+router.post("/", requireRole("TRAINER"), createWorkshop);
+router.patch("/:id", requireRole("TRAINER"), updateWorkshop);
+router.delete("/:id", requireRole("TRAINER"), deleteWorkshop);
 
 // Enrollment
 router.post("/:id/enroll", enrollInWorkshop);
 router.delete("/:id/enroll", unenrollFromWorkshop);
 router.get("/:id/enrollments", getWorkshopEnrollments);
 
-router.patch("/enrollments/:id/approve", approveEnrollment);
-router.patch("/enrollments/:id/deny", denyEnrollment);
+router.patch("/enrollments/:id/approve", requireRole("TRAINER"), approveEnrollment);
+router.patch("/enrollments/:id/deny", requireRole("TRAINER"), denyEnrollment);
 
 export default router;
