@@ -138,6 +138,7 @@ export const getAllWorkshops = async (
                                 where: { status: "APPROVED" },
                             },
                             videos: true,
+                            sections: true,
                         },
                     },
                 },
@@ -214,7 +215,35 @@ export const getWorkshopById = async (
                         email: true,
                     },
                 },
+                sections: {
+                    orderBy: { order: "asc" },
+                    include: {
+                        videos: {
+                            orderBy: { uploadedAt: "asc" },
+                            include: {
+                                trainer: {
+                                    select: {
+                                        id: true,
+                                        first_name: true,
+                                        last_name: true,
+                                    },
+                                },
+                                watchProgress: currentUserId ? {
+                                    where: { userId: currentUserId },
+                                    select: {
+                                        watchedSeconds: true,
+                                        totalDuration: true,
+                                        percentWatched: true,
+                                        isCompleted: true,
+                                        lastWatchedAt: true,
+                                    }
+                                } : false,
+                            }
+                        }
+                    }
+                },
                 videos: {
+                    where: { sectionId: null },
                     orderBy: { uploadedAt: "asc" },
                     include: {
                         trainer: {
@@ -273,9 +302,9 @@ export const getWorkshopById = async (
         const isEnrolled = enrollmentStatus === "APPROVED";
 
         // Remove videos if not trainer and not enrolled/approved
-        if (!isTrainer && !isEnrolled) {
-            (workshop as any).videos = [];
-        }
+        // if (!isTrainer && !isEnrolled) {
+        //     (workshop as any).videos = [];
+        // }
 
         res.status(200).json({
             success: true,
@@ -398,17 +427,13 @@ export const deleteWorkshop = async (
         // Queue delete jobs for each video
         for (const video of videos) {
             try {
-                const urlObj = new URL(video.url);
-                const youtubeId = urlObj.searchParams.get("v");
-
-                if (youtubeId) {
-                    await videoUploadQueue.add("video-delete", {
-                        type: 'delete',
-                        youtubeId,
-                        userId
-                    });
-                    console.log(`Queued YouTube delete for video: ${video.id} (${youtubeId})`);
-                }
+                await videoUploadQueue.add("video-delete", {
+                    type: "delete",
+                    videoUrl: video.url,
+                    storageType: video.storageType as any,
+                    userId
+                });
+                console.log(`Queued ${video.storageType} delete for video: ${video.id}`);
             } catch (err) {
                 console.error(`Failed to queue delete for video ${video.id}:`, err);
             }
@@ -793,7 +818,6 @@ export const getUserEnrollments = async (
     }
 };
 
-
 export const unenrollFromWorkshop = async (
     req: Request,
     res: Response<ApiResponse<any>>
@@ -840,6 +864,224 @@ export const unenrollFromWorkshop = async (
     }
 };
 
+export const createSection = async (
+    req: Request,
+    res: Response<ApiResponse<any>>
+) => {
+    try {
+        const { id: workshopId } = req.params;
+        const { id: userId } = req.user!;
+        const { title } = req.body;
+
+        const workshop = await prisma.workshop.findUnique({
+            where: { id: workshopId },
+        });
+
+        if (!workshop) {
+            return res.status(404).json({
+                success: false,
+                data: null,
+                message: "Workshop not found",
+            });
+        }
+
+        if (workshop.trainerId !== userId) {
+            return res.status(403).json({
+                success: false,
+                data: null,
+                message: "You can only add sections to your own workshops",
+            });
+        }
+
+        // Get max order
+        const lastSection = await prisma.workshopSection.findFirst({
+            where: { workshopId },
+            orderBy: { order: "desc" },
+        });
+        const newOrder = lastSection ? lastSection.order + 1 : 0;
+
+        const section = await prisma.workshopSection.create({
+            data: {
+                title,
+                workshopId,
+                order: newOrder,
+            },
+        });
+
+        res.status(201).json({
+            success: true,
+            data: section,
+            message: "Section created successfully",
+        });
+    } catch (error: any) {
+        console.error("Error creating section:", error);
+        res.status(500).json({
+            success: false,
+            data: null,
+            message: error.message || "Failed to create section",
+        });
+    }
+};
+
+export const updateSection = async (
+    req: Request,
+    res: Response<ApiResponse<any>>
+) => {
+    try {
+        const { id: sectionId } = req.params;
+        const { id: userId } = req.user!;
+        const { title } = req.body;
+
+        const section = await prisma.workshopSection.findUnique({
+            where: { id: sectionId },
+            include: { workshop: true },
+        });
+
+        if (!section) {
+            return res.status(404).json({
+                success: false,
+                data: null,
+                message: "Section not found",
+            });
+        }
+
+        if (section.workshop.trainerId !== userId) {
+            return res.status(403).json({
+                success: false,
+                data: null,
+                message: "You can only update sections in your own workshops",
+            });
+        }
+
+        const updatedSection = await prisma.workshopSection.update({
+            where: { id: sectionId },
+            data: { title },
+        });
+
+        res.status(200).json({
+            success: true,
+            data: updatedSection,
+            message: "Section updated successfully",
+        });
+    } catch (error: any) {
+        console.error("Error updating section:", error);
+        res.status(500).json({
+            success: false,
+            data: null,
+            message: error.message || "Failed to update section",
+        });
+    }
+};
+
+export const deleteSection = async (
+    req: Request,
+    res: Response<ApiResponse<any>>
+) => {
+    try {
+        const { id: sectionId } = req.params;
+        const { id: userId } = req.user!;
+
+        const section = await prisma.workshopSection.findUnique({
+            where: { id: sectionId },
+            include: { workshop: true },
+        });
+
+        if (!section) {
+            return res.status(404).json({
+                success: false,
+                data: null,
+                message: "Section not found",
+            });
+        }
+
+        if (section.workshop.trainerId !== userId) {
+            return res.status(403).json({
+                success: false,
+                data: null,
+                message: "You can only delete sections in your own workshops",
+            });
+        }
+
+        // Move videos to null section before deleting
+        await prisma.video.updateMany({
+            where: { sectionId },
+            data: { sectionId: null },
+        });
+
+        await prisma.workshopSection.delete({
+            where: { id: sectionId },
+        });
+
+        res.status(200).json({
+            success: true,
+            data: null,
+            message: "Section deleted successfully",
+        });
+    } catch (error: any) {
+        console.error("Error deleting section:", error);
+        res.status(500).json({
+            success: false,
+            data: null,
+            message: error.message || "Failed to delete section",
+        });
+    }
+};
+
+export const reorderSections = async (
+    req: Request,
+    res: Response<ApiResponse<any>>
+) => {
+    try {
+        const { id: workshopId } = req.params;
+        const { id: userId } = req.user!;
+        const { sections } = req.body; // Array of { id, order }
+
+        const workshop = await prisma.workshop.findUnique({
+            where: { id: workshopId },
+        });
+
+        if (!workshop) {
+            return res.status(404).json({
+                success: false,
+                data: null,
+                message: "Workshop not found",
+            });
+        }
+
+        if (workshop.trainerId !== userId) {
+            return res.status(403).json({
+                success: false,
+                data: null,
+                message: "You can only reorder sections in your own workshops",
+            });
+        }
+
+        // Transaction to update all
+        await prisma.$transaction(
+            sections.map((s: { id: string; order: number }) =>
+                prisma.workshopSection.update({
+                    where: { id: s.id },
+                    data: { order: s.order },
+                })
+            )
+        );
+
+        res.status(200).json({
+            success: true,
+            data: null,
+            message: "Sections reordered successfully",
+        });
+    } catch (error: any) {
+        console.error("Error reordering sections:", error);
+        res.status(500).json({
+            success: false,
+            data: null,
+            message: error.message || "Failed to reorder sections",
+        });
+    }
+};
+
+
 
 export const getMyWorkshops = async (
     req: Request,
@@ -873,6 +1115,7 @@ export const getMyWorkshops = async (
                             where: { status: "APPROVED" },
                         },
                         videos: true,
+                        sections: true,
                     },
                 },
             },
@@ -892,6 +1135,84 @@ export const getMyWorkshops = async (
             success: false,
             data: null,
             message: error.message || "Failed to fetch your workshops",
+        });
+    }
+};
+
+export const uploadWorkshopImage = async (
+    req: Request,
+    res: Response<ApiResponse<any>>
+) => {
+    try {
+        const { id } = req.params;
+        const workshopId = id.trim();
+        const { id: userId } = req.user!;
+
+        const workshop = await prisma.workshop.findUnique({
+            where: { id: workshopId },
+        });
+
+        if (!workshop) {
+            return res.status(404).json({
+                success: false,
+                data: null,
+                message: "Workshop not found",
+            });
+        }
+
+        if (workshop.trainerId !== userId) {
+            return res.status(403).json({
+                success: false,
+                data: null,
+                message: "You can only upload images to your own workshops",
+            });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                data: null,
+                message: "No image file provided",
+            });
+        }
+
+        // Construct the URL path for the uploaded image
+        const imageUrl = `/uploads/workshop-images/${req.file.filename}`;
+
+        const updatedWorkshop = await prisma.workshop.update({
+            where: { id: workshopId },
+            data: { imageUrl },
+            include: {
+                trainer: {
+                    select: {
+                        id: true,
+                        first_name: true,
+                        last_name: true,
+                        email: true,
+                    },
+                },
+                _count: {
+                    select: {
+                        enrollments: {
+                            where: { status: "APPROVED" },
+                        },
+                        videos: true,
+                    },
+                },
+            },
+        });
+
+        res.status(200).json({
+            success: true,
+            data: updatedWorkshop,
+            message: "Workshop image uploaded successfully",
+        });
+    } catch (error: any) {
+        console.error("Error uploading workshop image:", error);
+        res.status(500).json({
+            success: false,
+            data: null,
+            message: error.message || "Failed to upload workshop image",
         });
     }
 };

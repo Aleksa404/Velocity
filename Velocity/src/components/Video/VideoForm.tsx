@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, HardDrive, Youtube } from "lucide-react";
 import { createVideo } from "../../api/videoApi";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,10 +15,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { WorkshopSection } from "../../Types/Workshop";
 
 const videoSchema = z.object({
     title: z.string().min(1, "Title is required"),
     description: z.string().optional(),
+    storageType: z.enum(["LOCAL", "YOUTUBE"]),
+    sectionId: z.string().optional().nullable(),
     video: z
         .instanceof(FileList)
         .refine((files) => files.length > 0, "Video file is required")
@@ -34,14 +40,18 @@ type VideoFormValues = z.infer<typeof videoSchema>;
 interface VideoFormProps {
     onVideoPosted: () => void;
     workshopId: string;
+    isProcessing?: boolean;
+    sections?: WorkshopSection[];
 }
 
-const VideoForm = ({ onVideoPosted, workshopId }: VideoFormProps) => {
+const VideoForm = ({ onVideoPosted, workshopId, isProcessing = false, sections = [] }: VideoFormProps) => {
     const form = useForm<VideoFormValues>({
         resolver: zodResolver(videoSchema),
         defaultValues: {
             title: "",
             description: "",
+            storageType: "LOCAL",
+            sectionId: null,
         },
     });
 
@@ -53,13 +63,18 @@ const VideoForm = ({ onVideoPosted, workshopId }: VideoFormProps) => {
                 formData.append("description", data.description);
             }
             formData.append("video", data.video[0]);
+            formData.append("storageType", data.storageType);
             if (workshopId) {
                 formData.append("workshopId", workshopId);
+            }
+            if (data.sectionId) {
+                formData.append("sectionId", data.sectionId);
             }
 
             const result = await createVideo(formData);
             if (result.success) {
-                toast.success("Video posted successfully");
+                const destination = data.storageType === "YOUTUBE" ? "YouTube" : "local storage";
+                toast.success(`Video uploading to ${destination}...`);
                 form.reset();
                 onVideoPosted();
             } else {
@@ -72,20 +87,61 @@ const VideoForm = ({ onVideoPosted, workshopId }: VideoFormProps) => {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Video Title</FormLabel>
-                            <FormControl>
-                                <Input placeholder="e.g., Full Body Workout" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
+            {form.formState.isSubmitting && (
+                <div className="absolute inset-0 bg-white/80 z-50 flex flex-col items-center justify-center backdrop-blur-sm rounded-lg">
+                    <Loader2 className="h-10 w-10 animate-spin text-indigo-600 mb-4" />
+                    <p className="text-lg font-semibold text-gray-900">Uploading Video...</p>
+                    <p className="text-sm text-gray-500">Please do not close this window.</p>
+                </div>
+            )}
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 relative">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Video Title</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g., Full Body Workout" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    {sections.length > 0 && (
+                        <FormField
+                            control={form.control}
+                            name="sectionId"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Section (Optional)</FormLabel>
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value || undefined}
+                                    >
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select a section" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="none">None (Main list)</SelectItem>
+                                            {sections.map(section => (
+                                                <SelectItem key={section.id} value={section.id}>
+                                                    {section.title}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     )}
-                />
+                </div>
+
                 <FormField
                     control={form.control}
                     name="description"
@@ -98,6 +154,38 @@ const VideoForm = ({ onVideoPosted, workshopId }: VideoFormProps) => {
                                     className="resize-none"
                                     {...field}
                                 />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="storageType"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Upload Destination</FormLabel>
+                            <FormControl>
+                                <RadioGroup
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    className="flex gap-4"
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="LOCAL" id="local" />
+                                        <Label htmlFor="local" className="flex items-center gap-2 cursor-pointer">
+                                            <HardDrive className="w-4 h-4" />
+                                            Local Storage
+                                        </Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="YOUTUBE" id="youtube" />
+                                        <Label htmlFor="youtube" className="flex items-center gap-2 cursor-pointer">
+                                            <Youtube className="w-4 h-4 text-red-600" />
+                                            YouTube
+                                        </Label>
+                                    </div>
+                                </RadioGroup>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -125,11 +213,16 @@ const VideoForm = ({ onVideoPosted, workshopId }: VideoFormProps) => {
                         </FormItem>
                     )}
                 />
-                <Button type="submit" disabled={form.formState.isSubmitting}>
+                <Button type="submit" disabled={form.formState.isSubmitting || isProcessing}>
                     {form.formState.isSubmitting ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             Uploading...
+                        </>
+                    ) : isProcessing ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Processing...
                         </>
                     ) : (
                         "Post Video"
@@ -141,3 +234,4 @@ const VideoForm = ({ onVideoPosted, workshopId }: VideoFormProps) => {
 };
 
 export default VideoForm;
+

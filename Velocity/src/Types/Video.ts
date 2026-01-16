@@ -14,9 +14,12 @@ export interface Video {
     title: string;
     description?: string;
     url: string;
+    storageType: "LOCAL" | "YOUTUBE";
     duration?: number;
     uploadedAt: string;
     trainerId: string;
+    workshopId?: string;
+    sectionId?: string | null;
     trainer: {
         id?: string;
         first_name: string;

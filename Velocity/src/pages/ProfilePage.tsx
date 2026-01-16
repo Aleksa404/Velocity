@@ -19,7 +19,10 @@ const ProfilePage = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        fetchTrainerRequest();
+        if (user?.role === 'USER') {
+            fetchTrainerRequest();
+
+        }
     }, []);
 
     const fetchTrainerRequest = async () => {

@@ -7,7 +7,8 @@ import { toast } from "sonner";
 import { getPendingTrainerRequests, approveTrainerRequest, denyTrainerRequest } from "../../api/trainerRequestApi";
 import type { TrainerRequest } from "../../Types/TrainerRequest";
 import TrainerRequestCard from "./TrainerRequestCard";
-import { Users, UserCheck, Clock } from "lucide-react";
+import { Users, UserCheck, Clock, LayoutDashboard } from "lucide-react";
+import { SidebarManagementPage } from "@/pages/Admin/SidebarManagementPage";
 
 export const AdminDashboard = () => {
   const user = useUserStore((state) => state.user);
@@ -36,7 +37,6 @@ export const AdminDashboard = () => {
     try {
       await approveTrainerRequest(requestId);
       toast.success("Trainer request approved successfully!");
-      // Remove the approved request from the list
       setPendingRequests(prev => prev.filter(req => req.id !== requestId));
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to approve request");
@@ -50,7 +50,6 @@ export const AdminDashboard = () => {
     try {
       await denyTrainerRequest(requestId);
       toast.success("Trainer request denied");
-      // Remove the denied request from the list
       setPendingRequests(prev => prev.filter(req => req.id !== requestId));
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to deny request");
@@ -83,6 +82,10 @@ export const AdminDashboard = () => {
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
             Users
+          </TabsTrigger>
+          <TabsTrigger value="sidebar" className="flex items-center gap-2">
+            <LayoutDashboard className="w-4 h-4" />
+            Sidebar
           </TabsTrigger>
         </TabsList>
 
@@ -137,6 +140,10 @@ export const AdminDashboard = () => {
               <p className="text-muted-foreground">User management features coming soon...</p>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="sidebar">
+          <SidebarManagementPage />
         </TabsContent>
       </Tabs>
     </div>

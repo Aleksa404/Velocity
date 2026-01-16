@@ -5,7 +5,9 @@ import { useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useSidebarStore } from "@/stores/sidebarStore";
 import { searchTrainers } from "../api/trainerApi";
+import * as LucideIcons from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -29,19 +31,23 @@ import {
     Settings,
     Search,
     Menu,
-    Home,
-    Users,
-    BookOpen,
-    FolderOpen
 } from "lucide-react";
 
 const Navbar = () => {
     const user = useUserStore((state) => state.user);
+    const { sections } = useSidebarStore();
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [showResults, setShowResults] = useState(false);
+
+    // Icon mapper for mobile menu
+    const getIcon = (iconName?: string) => {
+        if (!iconName) return <LucideIcons.FolderOpen className="h-5 w-5" />;
+        const Icon = (LucideIcons as any)[iconName];
+        return Icon ? <Icon className="h-5 w-5" /> : <LucideIcons.FolderOpen className="h-5 w-5" />;
+    };
 
     // Debounce search
     useEffect(() => {
@@ -102,33 +108,42 @@ const Navbar = () => {
                                     </SheetDescription>
                                 </SheetHeader>
                                 <div className="flex flex-col gap-2">
-                                    <Button variant="ghost" className="justify-start gap-2" onClick={() => navigate("/")}>
-                                        <Home className="h-5 w-5" />
-                                        Dashboard
-                                    </Button>
-                                    <Button variant="ghost" className="justify-start gap-2" onClick={() => navigate("/trainers")}>
-                                        <Users className="h-5 w-5" />
-                                        Browse Trainers
-                                    </Button>
-                                    <Button variant="ghost" className="justify-start gap-2" onClick={() => navigate("/workshops")}>
-                                        <BookOpen className="h-5 w-5" />
-                                        Workshops
-                                    </Button>
-                                    {(user.role === "TRAINER" || user.role === "ADMIN") && (
-                                        <Button variant="ghost" className="justify-start gap-2" onClick={() => navigate("/workshops/my")}>
-                                            <FolderOpen className="h-5 w-5" />
-                                            My Workshops
-                                        </Button>
-                                    )}
-                                    <div className="my-4 border-t" />
-                                    <Button variant="ghost" className="justify-start gap-2" onClick={() => navigate("/profile")}>
-                                        <UserIcon className="h-5 w-5" />
-                                        Profile
-                                    </Button>
-                                    <Button variant="ghost" className="justify-start gap-2" onClick={() => navigate("/settings")}>
-                                        <Settings className="h-5 w-5" />
-                                        Settings
-                                    </Button>
+                                    {sections.map((section) => {
+                                        // Section Role Access
+                                        if (section.roles && section.roles.length > 0 && user.role && !section.roles.includes(user.role)) {
+                                            return null;
+                                        }
+
+                                        return (
+                                            <div key={section.id} className="space-y-1">
+                                                {section.title && (
+                                                    <div className="px-3 py-2">
+                                                        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                                            {section.title}
+                                                        </h3>
+                                                    </div>
+                                                )}
+                                                {section.items.map((item) => {
+                                                    // Item Role Access
+                                                    if (item.roles && item.roles.length > 0 && user.role && !item.roles.includes(user.role)) {
+                                                        return null;
+                                                    }
+
+                                                    return (
+                                                        <Button
+                                                            key={item.id}
+                                                            variant="ghost"
+                                                            className="justify-start gap-2 w-full"
+                                                            onClick={() => navigate(item.path)}
+                                                        >
+                                                            {getIcon(item.icon)}
+                                                            {item.label}
+                                                        </Button>
+                                                    );
+                                                })}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </SheetContent>
                         </Sheet>

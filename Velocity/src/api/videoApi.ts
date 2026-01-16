@@ -1,8 +1,10 @@
 import axiosInstance from "./axiosConfig";
 
+const BASE_URL = "/videos";
+
 export const createVideo = async (data: FormData) => {
     try {
-        const response = await axiosInstance.post("/videos", data);
+        const response = await axiosInstance.post(`${BASE_URL}`, data);
         return response.data;
     } catch (error: any) {
         return {
@@ -15,7 +17,7 @@ export const createVideo = async (data: FormData) => {
 
 export const deleteVideo = async (videoId: string) => {
     try {
-        const response = await axiosInstance.delete(`/videos/${videoId}`);
+        const response = await axiosInstance.delete(`${BASE_URL}/${videoId}`);
         return response.data;
     } catch (error: any) {
         return {
@@ -27,7 +29,7 @@ export const deleteVideo = async (videoId: string) => {
 
 export const getVideos = async (workshopId: string) => {
     try {
-        const response = await axiosInstance.get(`/videos?workshopId=${workshopId}`);
+        const response = await axiosInstance.get(`${BASE_URL}?workshopId=${workshopId}`);
         return response.data;
     } catch (error: any) {
         return {
@@ -42,7 +44,7 @@ export const updateVideoProgress = async (videoId: string, data: {
     totalDuration: number;
 }) => {
     try {
-        const response = await axiosInstance.post(`/videos/${videoId}/progress`, data);
+        const response = await axiosInstance.post(`${BASE_URL}/${videoId}/progress`, data);
         return response.data;
     } catch (error: any) {
         return {
@@ -54,7 +56,7 @@ export const updateVideoProgress = async (videoId: string, data: {
 
 export const getVideoProgress = async (videoId: string) => {
     try {
-        const response = await axiosInstance.get(`/videos/${videoId}/progress`);
+        const response = await axiosInstance.get(`${BASE_URL}/${videoId}/progress`);
         return response.data;
     } catch (error: any) {
         return {
@@ -66,7 +68,7 @@ export const getVideoProgress = async (videoId: string) => {
 
 export const getContinueWatching = async (limit = 10) => {
     try {
-        const response = await axiosInstance.get(`/videos/my/continue-watching?limit=${limit}`);
+        const response = await axiosInstance.get(`${BASE_URL}/my/continue-watching?limit=${limit}`);
         return response.data;
     } catch (error: any) {
         return {
@@ -78,7 +80,7 @@ export const getContinueWatching = async (limit = 10) => {
 
 export const markVideoComplete = async (videoId: string) => {
     try {
-        const response = await axiosInstance.post(`/videos/${videoId}/complete`);
+        const response = await axiosInstance.post(`${BASE_URL}/${videoId}/complete`);
         return response.data;
     } catch (error: any) {
         return {

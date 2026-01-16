@@ -1,9 +1,19 @@
 import type { Video } from "./Video";
 
+export interface WorkshopSection {
+    id: string;
+    title: string;
+    order: number;
+    workshopId: string;
+    videos?: Video[];
+}
+
+
 export interface Workshop {
     id: string;
     title: string;
     description: string;
+    imageUrl?: string;
     createdAt: string;
     updatedAt: string;
     trainerId: string;
@@ -14,9 +24,11 @@ export interface Workshop {
         email: string;
     };
     videos?: Video[];
+    sections?: WorkshopSection[];
     _count?: {
         enrollments: number;
         videos: number;
+        sections: number;
     };
     enrollmentStatus?: string | null;
 }

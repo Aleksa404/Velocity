@@ -2,11 +2,13 @@ import type { ApiResponse } from "../Types/Response";
 import axiosInstance from "./axiosConfig";
 import type { User } from "../Types/User";
 
+const BASE_URL = "/users";
+
 export const getUserRole = async (userId: string) => {
   console.log("Fetching user role for ID:", userId);
   try {
     const response = await axiosInstance.get<ApiResponse<string>>(
-      `/users/role/${userId}`
+      `${BASE_URL}/role/${userId}`
     );
     console.log("User role fetched:", response.data);
     if (!response.data.success) {
@@ -21,7 +23,7 @@ export const getUserRole = async (userId: string) => {
 export const updateUserRole = async (userId: string, role: string) => {
   try {
     const response = await axiosInstance.patch<ApiResponse<User>>(
-      `/users/role/${userId}`,
+      `${BASE_URL}/role/${userId}`,
       { role }
     );
     return response.data;

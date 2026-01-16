@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Play, Check } from "lucide-react";
 import VideoPlayer from "./VideoPlayer";
 import type { Video } from "../../Types/Video";
+import { getYouTubeThumbnail, isYouTubeUrl } from "@/lib/videoUtils";
 
 interface VideoCardProps {
     video: Video;
@@ -10,13 +11,9 @@ interface VideoCardProps {
     onPlay: () => void;
     onComplete?: () => void;
     onProgressUpdate?: (watchedSeconds: number, percent: number) => void;
-
 }
 
 const VideoCard = ({ video, isPlaying, onPlay, onComplete, onProgressUpdate }: VideoCardProps) => {
-
-    const youtubeId = video.url.split("v=")[1];
-
     const progress = video.watchProgress && video.watchProgress.length > 0
         ? video.watchProgress[0]
         : null;
@@ -24,12 +21,16 @@ const VideoCard = ({ video, isPlaying, onPlay, onComplete, onProgressUpdate }: V
     const isCompleted = progress?.isCompleted;
     const percentWatched = progress?.percentWatched || 0;
 
+    // Determine thumbnail logic
+    const isYouTube = isYouTubeUrl(video.url);
+    const thumbnailUrl = isYouTube ? getYouTubeThumbnail(video.url) : null;
+
     return (
         <Card className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
             <div className="aspect-video w-full relative bg-black group">
-                {isPlaying && youtubeId ? (
+                {isPlaying ? (
                     <VideoPlayer
-                        videoId={youtubeId}
+                        videoUrl={video.url}
                         dbVideoId={video.id}
                         initialProgress={progress?.watchedSeconds || 0}
                         onComplete={onComplete}
@@ -37,22 +38,21 @@ const VideoCard = ({ video, isPlaying, onPlay, onComplete, onProgressUpdate }: V
                     />
                 ) : (
                     <div
-                        className="w-full h-full cursor-pointer relative"
+                        className={`w-full h-full cursor-pointer relative flex items-center justify-center ${!isYouTube ? "bg-gradient-to-br from-indigo-600 to-purple-700" : ""
+                            }`}
                         onClick={onPlay}
                     >
-                        {youtubeId ? (
-                            <img
-                                src={`https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`}
-                                alt={video.title}
-                                className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
-                                onError={(e) => {
-                                    (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
-                                }}
-                            />
+                        {isYouTube && thumbnailUrl ? (
+                            <>
+                                <img
+                                    src={thumbnailUrl}
+                                    alt={video.title}
+                                    className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                                />
+                                <div className="absolute inset-0 bg-black/20" />
+                            </>
                         ) : (
-                            <div className="w-full h-full bg-gray-800 flex items-center justify-center text-white">
-                                Invalid Video URL
-                            </div>
+                            <div className="text-white/30 text-6xl font-bold">▶</div>
                         )}
 
                         {/* Play Button Overlay */}
@@ -78,7 +78,6 @@ const VideoCard = ({ video, isPlaying, onPlay, onComplete, onProgressUpdate }: V
                                 <Check className="w-3 h-3 mr-1" /> Watched
                             </Badge>
                         )}
-
                     </div>
                 )}
             </div>

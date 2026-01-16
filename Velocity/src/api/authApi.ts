@@ -4,10 +4,13 @@ import type { LoginUser, RegisterUser } from "../Types/User";
 import { setAccessToken } from "../service/tokenService";
 import { useUserStore } from "../stores/userStore";
 
+
+const BASE_URL = "/auth";
+
 export const signup = async (registerUser: RegisterUser) => {
   try {
     const response = await axiosInstance.post<ApiResponse<UserTokenResponse>>(
-      "/auth/register",
+      `${BASE_URL}/register`,
       {
         firstName: registerUser.firstName,
         lastName: registerUser.lastName,
@@ -37,7 +40,7 @@ export const signup = async (registerUser: RegisterUser) => {
 export const login = async (loginUser: LoginUser) => {
   try {
     const response = await axiosInstance.post<ApiResponse<UserTokenResponse>>(
-      "/auth/login",
+      `${BASE_URL}/login`,
       {
         email: loginUser.email,
         password: loginUser.password,
@@ -64,7 +67,7 @@ export const login = async (loginUser: LoginUser) => {
 
 export const logout = async () => {
   try {
-    await axiosInstance.post("/auth/logout");
+    await axiosInstance.post(`${BASE_URL}/logout`);
     useUserStore.getState().logout();
   } catch (error) {
     throw error;

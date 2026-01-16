@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Play } from "lucide-react";
 import VideoPlayer from "./VideoPlayer";
 import type { VideoWatchProgress } from "../../Types/Video";
+import { getYouTubeThumbnail, isYouTubeUrl } from "@/lib/videoUtils";
 
 // Extended type for continue watching response which includes nested video data
 interface ContinueWatchingItem extends VideoWatchProgress {
@@ -41,12 +42,6 @@ const ContinueWatching = () => {
         fetchContinueWatching();
     }, []);
 
-    const getYouTubeId = (url: string) => {
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-        const match = url.match(regExp);
-        return match && match[2].length === 11 ? match[2] : null;
-    };
-
     if (loading || items.length === 0) {
         return null;
     }
@@ -56,13 +51,11 @@ const ContinueWatching = () => {
             <h2 className="text-2xl font-bold mb-4">Continue Watching</h2>
             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
                 {items.map((item) => {
-                    const youtubeId = getYouTubeId(item.video.url);
-
                     if (playingId === item.id) {
                         return (
                             <div key={item.id} className="min-w-[300px] w-[300px] md:min-w-[350px] md:w-[350px]">
                                 <VideoPlayer
-                                    videoId={youtubeId || ""}
+                                    videoUrl={item.video.url}
                                     dbVideoId={item.video.id}
                                     initialProgress={item.watchedSeconds}
                                     className="rounded-lg overflow-hidden shadow-md"
@@ -71,21 +64,30 @@ const ContinueWatching = () => {
                         );
                     }
 
+                    const isYouTube = isYouTubeUrl(item.video.url);
+                    const thumbnailUrl = isYouTube ? getYouTubeThumbnail(item.video.url) : null;
+
                     return (
                         <Card
                             key={item.id}
                             className="min-w-[300px] w-[300px] md:min-w-[350px] md:w-[350px] cursor-pointer hover:shadow-md transition-shadow flex-shrink-0"
                             onClick={() => setPlayingId(item.id)}
                         >
-                            <div className="aspect-video relative bg-black rounded-t-lg overflow-hidden group">
-                                {youtubeId ? (
-                                    <img
-                                        src={`https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`}
-                                        alt={item.video.title}
-                                        className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
-                                    />
+                            <div className={`aspect-video relative rounded-t-lg overflow-hidden group ${!isYouTube ? "bg-gradient-to-br from-indigo-600 to-purple-700" : ""
+                                }`}>
+                                {isYouTube && thumbnailUrl ? (
+                                    <>
+                                        <img
+                                            src={thumbnailUrl}
+                                            alt={item.video.title}
+                                            className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                                        />
+                                        <div className="absolute inset-0 bg-black/20" />
+                                    </>
                                 ) : (
-                                    <div className="w-full h-full bg-gray-800" />
+                                    <div className="w-full h-full flex items-center justify-center text-white/30 text-4xl font-bold">
+                                        ▶
+                                    </div>
                                 )}
 
                                 <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/10">
@@ -107,7 +109,7 @@ const ContinueWatching = () => {
                                 </h3>
                                 <div className="flex justify-between text-xs text-muted-foreground">
                                     <span>{item.video.trainer.first_name} {item.video.trainer.last_name}</span>
-                                    <span>{item.percentWatched}% left</span>
+                                    <span>{100 - item.percentWatched}% left</span>
                                 </div>
                             </CardContent>
                         </Card>

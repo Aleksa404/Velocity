@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router";
-import { createWorkshop } from "../api/workshopApi";
+import { createWorkshop, uploadWorkshopImage } from "../../api/workshopApi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { useUserStore } from "../stores/userStore";
+import { useUserStore } from "../../stores/userStore";
 import { Navigate } from "react-router";
+import { ImagePlus, X, Loader2 } from "lucide-react";
 
 const CreateWorkshopPage = () => {
     const navigate = useNavigate();
@@ -18,11 +19,40 @@ const CreateWorkshopPage = () => {
         title: "",
         description: "",
     });
+    const [selectedImage, setSelectedImage] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Check if user is a trainer
     if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN")) {
         return <Navigate to="/workshops" />;
     }
+
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            // Validate file type
+            if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+                toast.error("Only JPEG, PNG, and WebP images are allowed");
+                return;
+            }
+            // Validate file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error("Image size must be less than 5MB");
+                return;
+            }
+            setSelectedImage(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+
+    const removeImage = () => {
+        setSelectedImage(null);
+        setImagePreview(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -41,6 +71,17 @@ const CreateWorkshopPage = () => {
             };
 
             const response = await createWorkshop(workshopData);
+
+            // If image is selected, upload it
+            if (selectedImage && response.data.id) {
+                try {
+                    await uploadWorkshopImage(response.data.id, selectedImage);
+                } catch (imageError) {
+                    console.error("Error uploading image:", imageError);
+                    toast.warning("Workshop created but image upload failed");
+                }
+            }
+
             toast.success("Workshop created successfully!");
             navigate(`/workshops/${response.data.id}`);
         } catch (error: any) {
@@ -101,13 +142,63 @@ const CreateWorkshopPage = () => {
                             />
                         </div>
 
+                        {/* Image Upload */}
+                        <div className="space-y-2">
+                            <Label>Cover Image (optional)</Label>
+                            {imagePreview ? (
+                                <div className="relative rounded-lg overflow-hidden border border-gray-200">
+                                    <img
+                                        src={imagePreview}
+                                        alt="Preview"
+                                        className="w-full h-48 object-cover"
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="icon"
+                                        className="absolute top-2 right-2 h-8 w-8"
+                                        onClick={removeImage}
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div
+                                    className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center hover:border-indigo-300 hover:bg-indigo-50/50 transition-colors cursor-pointer"
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    <ImagePlus className="h-10 w-10 mx-auto text-gray-400 mb-3" />
+                                    <p className="text-sm text-gray-500">
+                                        Click to upload a cover image
+                                    </p>
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        JPEG, PNG, or WebP (max 5MB)
+                                    </p>
+                                </div>
+                            )}
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                onChange={handleImageSelect}
+                                className="hidden"
+                            />
+                        </div>
+
                         <div className="flex gap-3 pt-4">
                             <Button
                                 type="submit"
                                 disabled={isSubmitting}
                                 className="flex-1"
                             >
-                                {isSubmitting ? "Creating..." : "Create Workshop"}
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Creating...
+                                    </>
+                                ) : (
+                                    "Create Workshop"
+                                )}
                             </Button>
                             <Button
                                 type="button"

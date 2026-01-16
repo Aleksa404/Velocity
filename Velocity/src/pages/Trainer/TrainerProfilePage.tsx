@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, Navigate } from "react-router";
-import { getTrainerProfile, followTrainer, unfollowTrainer } from "../api/trainerApi";
-import type { Trainer } from "../Types/Trainer";
+import { getTrainerProfile, followTrainer, unfollowTrainer } from "../../api/trainerApi";
+import type { Trainer } from "../../Types/Trainer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Users, Video, Calendar, Mail, UserCheck } from "lucide-react";
 import { toast } from "sonner";
-import { useUserStore } from "../stores/userStore";
+import { useUserStore } from "../../stores/userStore";
 
 const TrainerProfilePage = () => {
     const { id } = useParams<{ id: string }>();

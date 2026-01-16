@@ -7,9 +7,9 @@ import type { Follow } from "../../Types/Trainer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, User, Video } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import WorkshopCard from "../Workshop/WorkshopCard";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -27,10 +27,6 @@ const UserDashboard = () => {
     const [following, setFollowing] = useState<Follow[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [processingId, setProcessingId] = useState<string | null>(null);
-    const [unenrollDialog, setUnenrollDialog] = useState<{ open: boolean; workshopId: string | null }>({
-        open: false,
-        workshopId: null
-    });
     const [unfollowDialog, setUnfollowDialog] = useState<{ open: boolean; trainerId: string | null }>({
         open: false,
         trainerId: null
@@ -63,7 +59,6 @@ const UserDashboard = () => {
             await unenrollFromWorkshop(workshopId);
             toast.success("Unenrolled successfully");
             setEnrollments(enrollments.filter(e => e.workshopId !== workshopId));
-            setUnenrollDialog({ open: false, workshopId: null });
         } catch (error) {
             console.error("Error unenrolling:", error);
             toast.error("Failed to unenroll");
@@ -87,18 +82,7 @@ const UserDashboard = () => {
         }
     };
 
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case "APPROVED":
-                return <Badge className="bg-green-100 text-green-800 hover:bg-green-200">Enrolled</Badge>;
-            case "PENDING":
-                return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">Pending</Badge>;
-            case "DENIED":
-                return <Badge className="bg-red-100 text-red-800 hover:bg-red-200">Denied</Badge>;
-            default:
-                return <Badge variant="outline">{status}</Badge>;
-        }
-    };
+
 
     if (isLoading) {
         return (
@@ -132,49 +116,14 @@ const UserDashboard = () => {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {enrollments.map((enrollment) => (
-                                <Card key={enrollment.id} className="overflow-hidden">
-                                    <CardHeader className="pb-4">
-                                        <div className="flex justify-between items-start">
-                                            <CardTitle className="text-xl truncate pr-2" title={enrollment.workshop?.title}>
-                                                {enrollment.workshop?.title}
-                                            </CardTitle>
-                                            {getStatusBadge(enrollment.status)}
-                                        </div>
-
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="space-y-4">
-                                            <div className="flex items-center text-sm text-muted-foreground">
-                                                <User className="h-4 w-4 mr-2" />
-                                                Trainer: {enrollment.workshop?.trainer?.first_name} {enrollment.workshop?.trainer?.last_name}
-                                            </div>
-
-                                            <div className="flex gap-2 pt-2">
-                                                <Button
-                                                    variant="outline"
-                                                    className="flex-1"
-                                                    onClick={() => navigate(`/workshops/${enrollment.workshopId}`)}
-                                                >
-                                                    <Video className="h-4 w-4 mr-2" />
-                                                    View Videos
-                                                </Button>
-                                                <Button
-                                                    variant="destructive"
-                                                    size="default"
-                                                    title="Unenroll"
-                                                    disabled={processingId === enrollment.workshopId}
-                                                    onClick={() => setUnenrollDialog({ open: true, workshopId: enrollment.workshopId })}
-                                                >
-                                                    {processingId === enrollment.workshopId ? (
-                                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                                    ) : (
-                                                        <p>Unenroll</p>
-                                                    )}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                                enrollment.workshop && (
+                                    <WorkshopCard
+                                        key={enrollment.id}
+                                        workshop={enrollment.workshop}
+                                        enrollmentStatus={enrollment.status}
+                                        onDelete={handleUnenroll}
+                                    />
+                                )
                             ))}
                         </div>
                     )}
@@ -222,26 +171,7 @@ const UserDashboard = () => {
                 </TabsContent>
             </Tabs>
 
-            {/* Unenroll Confirmation Dialog */}
-            <AlertDialog open={unenrollDialog.open} onOpenChange={(open) => setUnenrollDialog({ open, workshopId: null })}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Unenroll from Workshop?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Are you sure you want to unenroll from this workshop? This action cannot be undone, and you'll need to request enrollment again if you change your mind.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={() => unenrollDialog.workshopId && handleUnenroll(unenrollDialog.workshopId)}
-                            className="bg-destructive text-amber-50 hover:bg-destructive/90"
-                        >
-                            Unenroll
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+
 
             {/* Unfollow Confirmation Dialog */}
             <AlertDialog open={unfollowDialog.open} onOpenChange={(open) => setUnfollowDialog({ open, trainerId: null })}>

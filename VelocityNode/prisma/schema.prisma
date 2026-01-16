@@ -68,27 +68,49 @@ model Workshop {
   id          String   @id @default(cuid())
   title       String
   description String
+  imageUrl    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   trainerId   String
   trainer     User                 @relation(fields: [trainerId], references: [id])
   videos      Video[]
+  sections    WorkshopSection[]
   enrollments WorkshopEnrollment[]
 }
 
+model WorkshopSection {
+  id         String   @id @default(cuid())
+  title      String
+  order      Int      @default(0)
+  workshopId String
+  workshop   Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+  videos     Video[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+enum StorageType {
+  LOCAL
+  YOUTUBE
+}
+
 model Video {
-  id          String   @id @default(cuid())
+  id          String      @id @default(cuid())
   title       String
   description String?
   url         String
+  storageType StorageType @default(LOCAL)
   duration    Int? // Duration in seconds
-  uploadedAt  DateTime @default(now())
+  uploadedAt  DateTime    @default(now())
 
   trainerId  String
   trainer    User     @relation(fields: [trainerId], references: [id])
   workshopId String
   workshop   Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+
+  sectionId String?
+  section   WorkshopSection? @relation(fields: [sectionId], references: [id])
 
   watchProgress VideoWatchProgress[]
 }
@@ -151,4 +173,30 @@ model WorkshopEnrollment {
   workshop Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
 
   @@unique([userId, workshopId])
+}
+
+model SidebarSection {
+  id        String        @id @default(cuid())
+  title     String
+  order     Int           @default(0)
+  icon      String?
+  path      String?
+  roles     Role[]        @default([])
+  items     SidebarItem[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model SidebarItem {
+  id        String   @id @default(cuid())
+  label     String
+  icon      String // Lucide icon name
+  path      String
+  order     Int      @default(0)
+  roles     Role[]   @default([])
+  sectionId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  section SidebarSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 }
