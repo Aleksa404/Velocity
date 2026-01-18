@@ -31,7 +31,11 @@ import {
     Settings,
     Search,
     Menu,
+    Sun,
+    Moon,
 } from "lucide-react";
+import { ModeToggle } from "./mode-toggle";
+import { useTheme } from "next-themes";
 
 const Navbar = () => {
     const user = useUserStore((state) => state.user);
@@ -41,6 +45,8 @@ const Navbar = () => {
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [showResults, setShowResults] = useState(false);
+
+    const { setTheme, theme } = useTheme()
 
     // Icon mapper for mobile menu
     const getIcon = (iconName?: string) => {
@@ -87,14 +93,14 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="border-b bg-white/75 backdrop-blur-md sticky top-0 z-50">
+        <nav className="border-b bg-white/75 dark:bg-background/75 backdrop-blur-md sticky top-0 z-50 border-gray-200 dark:border-border">
             <div className="container mx-auto px-4 h-16 flex items-center justify-between">
                 {/* Mobile Menu Trigger */}
                 {user && (
                     <div className="md:hidden mr-2">
                         <Sheet>
                             <SheetTrigger asChild>
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" className="text-gray-700 dark:text-gray-200">
                                     <Menu className="h-6 w-6" />
                                 </Button>
                             </SheetTrigger>
@@ -118,7 +124,7 @@ const Navbar = () => {
                                             <div key={section.id} className="space-y-1">
                                                 {section.title && (
                                                     <div className="px-3 py-2">
-                                                        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                                        <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                                                             {section.title}
                                                         </h3>
                                                     </div>
@@ -133,7 +139,7 @@ const Navbar = () => {
                                                         <Button
                                                             key={item.id}
                                                             variant="ghost"
-                                                            className="justify-start gap-2 w-full"
+                                                            className="justify-start gap-2 w-full dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
                                                             onClick={() => navigate(item.path)}
                                                         >
                                                             {getIcon(item.icon)}
@@ -168,7 +174,7 @@ const Navbar = () => {
                                 placeholder="Search trainers..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-10 w-full bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+                                className="pl-10 w-full bg-gray-50 border-gray-200 focus:bg-white dark:bg-muted/50 dark:border-border dark:focus:bg-muted transition-colors dark:text-foreground dark:placeholder:text-muted-foreground"
                                 onFocus={() => {
                                     if (searchResults.length > 0) setShowResults(true);
                                 }}
@@ -183,11 +189,11 @@ const Navbar = () => {
 
                         {/* Search Results Dropdown */}
                         {showResults && searchResults.length > 0 && (
-                            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-100 py-2 max-h-96 overflow-y-auto z-50">
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-card rounded-lg shadow-lg border border-gray-100 dark:border-border py-2 max-h-96 overflow-y-auto z-50">
                                 {searchResults.map((trainer) => (
                                     <div
                                         key={trainer.id}
-                                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer flex items-center gap-3 transition-colors"
+                                        className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-muted/50 cursor-pointer flex items-center gap-3 transition-colors"
                                         onClick={() => {
                                             navigate(`/trainers/${trainer.id}`);
                                             setShowResults(false);
@@ -195,15 +201,15 @@ const Navbar = () => {
                                         }}
                                     >
                                         <Avatar className="h-8 w-8">
-                                            <AvatarFallback className="bg-indigo-100 text-indigo-600 text-xs">
+                                            <AvatarFallback className="bg-indigo-100 text-indigo-600 text-xs dark:bg-indigo-900/50 dark:text-indigo-400">
                                                 {trainer.first_name[0]}{trainer.last_name[0]}
                                             </AvatarFallback>
                                         </Avatar>
                                         <div>
-                                            <p className="text-sm font-medium text-gray-900">
+                                            <p className="text-sm font-medium text-gray-900 dark:text-foreground">
                                                 {trainer.first_name} {trainer.last_name}
                                             </p>
-                                            <p className="text-xs text-gray-500">Trainer</p>
+                                            <p className="text-xs text-gray-500 dark:text-muted-foreground">Trainer</p>
                                         </div>
                                     </div>
                                 ))}
@@ -231,7 +237,7 @@ const Navbar = () => {
                                     variant="ghost"
                                     className="relative h-10 w-10 rounded-full"
                                 >
-                                    <Avatar className="h-10 w-10 border-2 border-indigo-100 hover:border-indigo-200 transition-colors">
+                                    <Avatar className="h-10 w-10 border-2 border-indigo-100 hover:border-indigo-200 dark:border-indigo-900 dark:hover:border-indigo-800 transition-colors">
                                         <AvatarImage src="" alt={user.firstName} />
                                         <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-medium">
                                             {getInitials()}
@@ -251,6 +257,13 @@ const Navbar = () => {
                                     </div>
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+                                    <div className="relative mr-2 h-4 w-4">
+                                        <Sun className="absolute h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-amber-500" />
+                                        <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-indigo-400" />
+                                    </div>
+                                    <span>Toggle Theme</span>
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => navigate("/profile")}>
                                     <UserIcon className="mr-2 h-4 w-4" />
                                     <span>Profile</span>
@@ -262,7 +275,7 @@ const Navbar = () => {
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                     onClick={handleLogout}
-                                    className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                                    className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/10"
                                 >
                                     <LogOut className="mr-2 h-4 w-4" />
                                     <span>Log out</span>

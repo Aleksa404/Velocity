@@ -18,8 +18,8 @@ router.get("/", getSidebar);
 
 // Admin only
 router.post("/sections", requireRole("ADMIN"), upsertSection);
-router.delete("/sections/:id", requireRole("ADMIN"), deleteSection);
 router.post("/sections/reorder", requireRole("ADMIN"), reorderSections);
+router.delete("/sections/:id", requireRole("ADMIN"), deleteSection);
 
 router.post("/items", requireRole("ADMIN"), upsertItem);
 router.delete("/items/:id", requireRole("ADMIN"), deleteItem);

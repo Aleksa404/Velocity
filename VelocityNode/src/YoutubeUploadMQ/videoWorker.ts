@@ -27,9 +27,8 @@ const oauth2Client = new google.auth.OAuth2(
     "http://localhost:5000/oauth2callback"
 );
 
-/**
- * Compress video using FFmpeg
- */
+
+// Compress video using FFmpeg
 function compressVideo(inputPath: string, outputPath: string): Promise<void> {
     return new Promise((resolve, reject) => {
         ffmpeg(inputPath)
@@ -61,9 +60,8 @@ function compressVideo(inputPath: string, outputPath: string): Promise<void> {
     });
 }
 
-/**
- * Get video duration using FFmpeg
- */
+
+// Get video duration using FFmpeg
 function getVideoDuration(filePath: string): Promise<number> {
     return new Promise((resolve, reject) => {
         ffmpeg.ffprobe(filePath, (err, metadata) => {
@@ -77,9 +75,8 @@ function getVideoDuration(filePath: string): Promise<number> {
     });
 }
 
-/**
- * Upload video to LOCAL storage
- */
+
+// Upload video to LOCAL storage
 async function uploadToLocal(
     filePath: string,
     title: string,
@@ -113,9 +110,8 @@ async function uploadToLocal(
     };
 }
 
-/**
- * Upload video to YOUTUBE
- */
+
+// Upload video to YOUTUBE
 async function uploadToYouTube(
     filePath: string,
     title: string,
@@ -178,9 +174,8 @@ async function uploadToYouTube(
     };
 }
 
-/**
- * Delete video from LOCAL storage
- */
+
+
 function deleteFromLocal(videoUrl: string, jobId: string | undefined): void {
     const filename = videoUrl.split("/").pop();
     if (!filename) {
@@ -197,9 +192,8 @@ function deleteFromLocal(videoUrl: string, jobId: string | undefined): void {
     }
 }
 
-/**
- * Delete video from YOUTUBE
- */
+
+
 async function deleteFromYouTube(videoUrl: string, jobId: string | undefined): Promise<void> {
     if (!process.env.YOUTUBE_REFRESH_TOKEN) {
         throw new Error("YOUTUBE_REFRESH_TOKEN is not defined");

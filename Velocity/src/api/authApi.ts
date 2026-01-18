@@ -66,10 +66,8 @@ export const login = async (loginUser: LoginUser) => {
 };
 
 export const logout = async () => {
-  try {
-    await axiosInstance.post(`${BASE_URL}/logout`);
-    useUserStore.getState().logout();
-  } catch (error) {
-    throw error;
-  }
+
+  await axiosInstance.post(`${BASE_URL}/logout`);
+  useUserStore.getState().logout();
+
 };

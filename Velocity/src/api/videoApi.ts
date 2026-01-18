@@ -90,3 +90,15 @@ export const markVideoComplete = async (videoId: string) => {
     }
 };
 
+export const moveVideoToSection = async (videoId: string, sectionId: string | null) => {
+    try {
+        const response = await axiosInstance.patch(`${BASE_URL}/${videoId}/section`, { sectionId });
+        return response.data;
+    } catch (error: any) {
+        return {
+            success: false,
+            message: error.response?.data?.message || "Failed to update section",
+        };
+    }
+};
+

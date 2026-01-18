@@ -88,10 +88,10 @@ const VideoForm = ({ onVideoPosted, workshopId, isProcessing = false, sections =
     return (
         <Form {...form}>
             {form.formState.isSubmitting && (
-                <div className="absolute inset-0 bg-white/80 z-50 flex flex-col items-center justify-center backdrop-blur-sm rounded-lg">
+                <div className="absolute inset-0 bg-white/80 dark:bg-slate-950/80 z-50 flex flex-col items-center justify-center backdrop-blur-sm rounded-lg">
                     <Loader2 className="h-10 w-10 animate-spin text-indigo-600 mb-4" />
-                    <p className="text-lg font-semibold text-gray-900">Uploading Video...</p>
-                    <p className="text-sm text-gray-500">Please do not close this window.</p>
+                    <p className="text-lg font-bold text-foreground">Uploading Video...</p>
+                    <p className="text-sm text-muted-foreground font-medium">Please do not close this window.</p>
                 </div>
             )}
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 relative">
@@ -101,9 +101,9 @@ const VideoForm = ({ onVideoPosted, workshopId, isProcessing = false, sections =
                         name="title"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Video Title</FormLabel>
+                                <FormLabel className="text-sm font-bold text-foreground">Video Title</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="e.g., Full Body Workout" {...field} />
+                                    <Input placeholder="e.g., Full Body Workout" {...field} className="h-11 rounded-xl bg-muted/50 border-border focus:bg-background transition-all" />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -116,20 +116,20 @@ const VideoForm = ({ onVideoPosted, workshopId, isProcessing = false, sections =
                             name="sectionId"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Section (Optional)</FormLabel>
+                                    <FormLabel className="text-sm font-bold text-foreground">Section (Optional)</FormLabel>
                                     <Select
                                         onValueChange={field.onChange}
                                         defaultValue={field.value || undefined}
                                     >
                                         <FormControl>
-                                            <SelectTrigger>
+                                            <SelectTrigger className="h-11 rounded-xl bg-muted/50 border-border">
                                                 <SelectValue placeholder="Select a section" />
                                             </SelectTrigger>
                                         </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="none">None (Main list)</SelectItem>
+                                        <SelectContent className="dark:bg-card dark:border-white/10 rounded-xl">
+                                            <SelectItem value="none" className="rounded-lg m-1">None (Main list)</SelectItem>
                                             {sections.map(section => (
-                                                <SelectItem key={section.id} value={section.id}>
+                                                <SelectItem key={section.id} value={section.id} className="rounded-lg m-1">
                                                     {section.title}
                                                 </SelectItem>
                                             ))}
@@ -147,11 +147,11 @@ const VideoForm = ({ onVideoPosted, workshopId, isProcessing = false, sections =
                     name="description"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Description (Optional)</FormLabel>
+                            <FormLabel className="text-sm font-bold text-foreground">Description (Optional)</FormLabel>
                             <FormControl>
                                 <Textarea
                                     placeholder="Add details about this video..."
-                                    className="resize-none"
+                                    className="resize-none rounded-xl bg-muted/50 border-border focus:bg-background transition-all min-h-[100px]"
                                     {...field}
                                 />
                             </FormControl>
@@ -163,24 +163,24 @@ const VideoForm = ({ onVideoPosted, workshopId, isProcessing = false, sections =
                     control={form.control}
                     name="storageType"
                     render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Upload Destination</FormLabel>
+                        <FormItem className="space-y-3">
+                            <FormLabel className="text-sm font-bold text-foreground">Upload Destination</FormLabel>
                             <FormControl>
                                 <RadioGroup
                                     onValueChange={field.onChange}
                                     defaultValue={field.value}
-                                    className="flex gap-4"
+                                    className="flex gap-6"
                                 >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="LOCAL" id="local" />
-                                        <Label htmlFor="local" className="flex items-center gap-2 cursor-pointer">
-                                            <HardDrive className="w-4 h-4" />
+                                    <div className="flex items-center space-x-2.5">
+                                        <RadioGroupItem value="LOCAL" id="local" className="border-indigo-500 text-indigo-600" />
+                                        <Label htmlFor="local" className="flex items-center gap-2 cursor-pointer font-bold text-foreground/80 hover:text-foreground transition-colors">
+                                            <HardDrive className="w-4 h-4 text-indigo-500" />
                                             Local Storage
                                         </Label>
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="YOUTUBE" id="youtube" />
-                                        <Label htmlFor="youtube" className="flex items-center gap-2 cursor-pointer">
+                                    <div className="flex items-center space-x-2.5">
+                                        <RadioGroupItem value="YOUTUBE" id="youtube" className="border-red-500 text-red-600" />
+                                        <Label htmlFor="youtube" className="flex items-center gap-2 cursor-pointer font-bold text-foreground/80 hover:text-foreground transition-colors">
                                             <Youtube className="w-4 h-4 text-red-600" />
                                             YouTube
                                         </Label>
@@ -196,7 +196,7 @@ const VideoForm = ({ onVideoPosted, workshopId, isProcessing = false, sections =
                     name="video"
                     render={({ field: { onChange, onBlur, name, ref } }) => (
                         <FormItem>
-                            <FormLabel>Video File</FormLabel>
+                            <FormLabel className="text-sm font-bold text-foreground">Video File</FormLabel>
                             <FormControl>
                                 <Input
                                     type="file"
@@ -207,13 +207,18 @@ const VideoForm = ({ onVideoPosted, workshopId, isProcessing = false, sections =
                                     onBlur={onBlur}
                                     name={name}
                                     ref={ref}
+                                    className="h-11 rounded-xl bg-muted/50 border-border file:bg-indigo-500/10 file:text-indigo-600 dark:file:text-indigo-400 file:border-0 file:rounded-lg file:px-3 file:py-1 file:mr-4 file:font-bold file:text-xs cursor-pointer"
                                 />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
-                <Button type="submit" disabled={form.formState.isSubmitting || isProcessing}>
+                <Button
+                    type="submit"
+                    disabled={form.formState.isSubmitting || isProcessing}
+                    className="w-full sm:w-auto px-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-11 font-bold shadow-lg shadow-indigo-500/20"
+                >
                     {form.formState.isSubmitting ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

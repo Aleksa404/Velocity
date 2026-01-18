@@ -1,3 +1,5 @@
+import type { User } from "./User";
+
 export interface ApiResponse<T> {
   success: boolean;
   data: T | null;
@@ -14,6 +16,6 @@ export interface UserLoginResponse {
   updatedAt: Date;
 }
 export interface UserTokenResponse {
-  user: UserLoginResponse;
+  user: User;
   accessToken: string;
 }

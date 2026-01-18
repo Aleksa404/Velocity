@@ -1,3 +1,6 @@
+import type { Workshop } from "./Workshop";
+import type { Video } from "./Video";
+
 export interface Trainer {
     id: string;
     first_name: string;
@@ -11,6 +14,8 @@ export interface Trainer {
         workshops: number;
     };
     isFollowing?: boolean;
+    workshops?: Workshop[];
+    videos?: Video[];
 }
 
 export interface Follow {

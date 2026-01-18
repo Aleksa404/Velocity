@@ -9,7 +9,6 @@ const VIDEOS_DIR = path.join(__dirname, "../../videos");
 
 export const createVideo = async (req: Request, res: Response) => {
     try {
-        console.log(req.user);
         const userId = req.user?.id;
         if (!userId) {
             return res.status(401).json({ message: "Unauthorized" });
@@ -146,7 +145,7 @@ export const getVideos = async (req: Request, res: Response) => {
 export const deleteVideo = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id;
-        const videoId = req.params.id;
+        const videoId = req.params.id as string;
 
         const video = await prisma.video.findUnique({
             where: { id: videoId },
@@ -187,9 +186,9 @@ export const deleteVideo = async (req: Request, res: Response) => {
     }
 };
 
-/**
- * Stream local video file with range request support for seeking
- */
+
+// Stream local video file with range request support for seeking
+
 export const streamVideo = async (req: Request, res: Response) => {
     try {
         const { filename } = req.params;

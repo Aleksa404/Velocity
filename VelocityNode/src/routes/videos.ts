@@ -15,7 +15,7 @@ const router = express.Router();
 const upload = multer({ dest: "uploads/" });
 const multerUploadMiddleware = upload.single("video");
 
-// Public route - Video streaming (must be BEFORE authenticateToken middleware)
+// Public route - Video streaming
 // This allows the HTML5 video element to stream without auth headers
 router.get("/stream/:filename", streamVideo);
 
@@ -26,8 +26,8 @@ router.get("/", getVideos);
 
 // Protected route for trainers to post videos
 router.post("/", requireRole("TRAINER"), multerUploadMiddleware, createVideo);
-router.delete("/:id", requireRole("TRAINER"), deleteVideo);
 router.patch("/:id/section", requireRole("TRAINER"), updateVideoSection);
+router.delete("/:id", requireRole("TRAINER"), deleteVideo);
 
 
 // Video progress tracking routes

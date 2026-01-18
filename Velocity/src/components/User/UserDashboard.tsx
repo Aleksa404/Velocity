@@ -95,22 +95,34 @@ const UserDashboard = () => {
     return (
         <div className="container mx-auto p-6 space-y-8">
             <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900">My Dashboard</h1>
-                <p className="text-muted-foreground">Manage your workshops and followed trainers.</p>
+                <h1 className="text-3xl font-bold tracking-tight text-foreground">My Dashboard</h1>
+                <p className="text-muted-foreground font-medium">Manage your workshops and followed trainers.</p>
             </div>
 
             <Tabs defaultValue="workshops" className="space-y-6">
-                <TabsList>
-                    <TabsTrigger value="workshops">My Workshops</TabsTrigger>
-                    <TabsTrigger value="following">Following</TabsTrigger>
+                <TabsList className="bg-muted/50 p-1 dark:border dark:border-white/5 shadow-inner">
+                    <TabsTrigger value="workshops" className="data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all rounded-md">
+                        My Workshops
+                    </TabsTrigger>
+                    <TabsTrigger value="following" className="data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all rounded-md">
+                        Following
+                    </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="workshops" className="space-y-6">
+                <TabsContent value="workshops" className="space-y-6 outline-none">
                     {enrollments.length === 0 ? (
-                        <Card>
-                            <CardContent className="flex flex-col items-center justify-center h-64 space-y-4">
-                                <p className="text-muted-foreground text-lg">You haven't enrolled in any workshops yet.</p>
-                                <Button onClick={() => navigate("/workshops")}>Browse Workshops</Button>
+                        <Card className="bg-muted/20 border-dashed border-2 border-border/50">
+                            <CardContent className="flex flex-col items-center justify-center h-80 space-y-6">
+                                <div className="p-4 bg-background rounded-full shadow-sm dark:shadow-none border border-border">
+                                    <Loader2 className="w-8 h-8 text-muted-foreground opacity-20" />
+                                </div>
+                                <div className="text-center space-y-2">
+                                    <p className="text-foreground text-xl font-bold">No workshops yet</p>
+                                    <p className="text-muted-foreground font-medium">You haven't enrolled in any workshops yet.</p>
+                                </div>
+                                <Button onClick={() => navigate("/workshops")} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-8 h-12 font-bold shadow-lg shadow-indigo-500/20">
+                                    Browse Workshops
+                                </Button>
                             </CardContent>
                         </Card>
                     ) : (
@@ -129,38 +141,46 @@ const UserDashboard = () => {
                     )}
                 </TabsContent>
 
-                <TabsContent value="following" className="space-y-6">
+                <TabsContent value="following" className="space-y-6 outline-none">
                     {following.length === 0 ? (
-                        <Card>
-                            <CardContent className="flex flex-col items-center justify-center h-64 space-y-4">
-                                <p className="text-muted-foreground text-lg">You are not following any trainers yet.</p>
-                                <Button onClick={() => navigate("/trainers")}>Find Trainers</Button>
+                        <Card className="bg-muted/20 border-dashed border-2 border-border/50">
+                            <CardContent className="flex flex-col items-center justify-center h-80 space-y-6">
+                                <div className="p-4 bg-background rounded-full shadow-sm border border-border">
+                                    <Loader2 className="w-8 h-8 text-muted-foreground opacity-20" />
+                                </div>
+                                <div className="text-center space-y-2">
+                                    <p className="text-foreground text-xl font-bold">No trainers followed</p>
+                                    <p className="text-muted-foreground font-medium">You are not following any trainers yet.</p>
+                                </div>
+                                <Button onClick={() => navigate("/trainers")} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-8 h-12 font-bold shadow-lg shadow-indigo-500/20">
+                                    Find Trainers
+                                </Button>
                             </CardContent>
                         </Card>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {following.map((follow) => (
-                                <Card key={follow.id}>
-                                    <CardHeader>
-                                        <CardTitle>{follow.trainer?.first_name} {follow.trainer?.last_name}</CardTitle>
-                                        <CardDescription>{follow.trainer?.email}</CardDescription>
+                                <Card key={follow.id} className="bg-card border-border hover:shadow-lg dark:hover:ring-1 dark:hover:ring-white/10 transition-all duration-300 overflow-hidden">
+                                    <CardHeader className="pb-4">
+                                        <CardTitle className="text-foreground font-bold">{follow.trainer?.first_name} {follow.trainer?.last_name}</CardTitle>
+                                        <CardDescription className="text-muted-foreground font-medium">{follow.trainer?.email}</CardDescription>
                                     </CardHeader>
                                     <CardContent>
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-2.5 pt-2 border-t border-border/50">
                                             <Button
-                                                variant="outline"
-                                                className="flex-1"
+                                                variant="secondary"
+                                                className="flex-1 bg-muted/50 hover:bg-muted text-foreground font-bold rounded-xl h-10 border border-border/50"
                                                 onClick={() => navigate(`/trainers/${follow.trainerId}`)}
                                             >
                                                 View Profile
                                             </Button>
                                             <Button
-
-                                                variant="destructive"
+                                                variant="outline"
+                                                className="hover:bg-rose-500/10 hover:text-rose-600 hover:border-rose-500/20 font-bold rounded-xl h-10 border-border text-muted-foreground transition-all"
                                                 onClick={() => setUnfollowDialog({ open: true, trainerId: follow.trainerId })}
                                                 disabled={processingId === follow.trainerId}
                                             >
-                                                {processingId === follow.trainerId ? "Processing..." : "Unfollow"}
+                                                {processingId === follow.trainerId ? "..." : "Unfollow"}
                                             </Button>
                                         </div>
                                     </CardContent>
@@ -171,21 +191,19 @@ const UserDashboard = () => {
                 </TabsContent>
             </Tabs>
 
-
-
             {/* Unfollow Confirmation Dialog */}
             <AlertDialog open={unfollowDialog.open} onOpenChange={(open) => setUnfollowDialog({ open, trainerId: null })}>
-                <AlertDialogContent>
+                <AlertDialogContent className="dark:border-white/10 dark:bg-card">
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Unfollow Trainer?</AlertDialogTitle>
-                        <AlertDialogDescription>
+                        <AlertDialogTitle className="text-foreground font-bold">Unfollow Trainer?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-muted-foreground font-medium">
                             Are you sure you want to unfollow this trainer? You can follow them again later if you change your mind.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogFooter className="gap-2">
+                        <AlertDialogCancel className="bg-muted border-border text-foreground font-bold rounded-xl">Cancel</AlertDialogCancel>
                         <AlertDialogAction
-                            className="bg-destructive text-amber-50 hover:bg-destructive/90"
+                            className="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-lg shadow-rose-500/20"
                             onClick={() => unfollowDialog.trainerId && handleUnfollow(unfollowDialog.trainerId)}
                         >
                             Unfollow

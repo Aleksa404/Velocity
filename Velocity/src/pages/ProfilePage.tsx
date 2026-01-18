@@ -10,6 +10,7 @@ import { createTrainerRequest, getUserTrainerRequest } from "../api/trainerReque
 import type { TrainerRequest } from "../Types/TrainerRequest";
 import { User, Mail, Shield, Calendar, CheckCircle, XCircle, Clock } from "lucide-react";
 import { Navigate } from "react-router";
+import { cn } from "@/lib/utils";
 
 const ProfilePage = () => {
     const user = useUserStore((state) => state.user);
@@ -61,13 +62,13 @@ const ProfilePage = () => {
 
     const getRoleBadge = (role: string) => {
         const roleColors: Record<string, string> = {
-            USER: "bg-gray-100 text-gray-800",
-            TRAINER: "bg-blue-100 text-blue-800",
-            ADMIN: "bg-purple-100 text-purple-800",
+            USER: "bg-muted text-muted-foreground border-border",
+            TRAINER: "bg-indigo-100/10 text-indigo-600 dark:text-indigo-400 border-indigo-200/20",
+            ADMIN: "bg-purple-100/10 text-purple-600 dark:text-purple-400 border-purple-200/20",
         };
 
         return (
-            <Badge className={roleColors[role] || roleColors.USER}>
+            <Badge variant="outline" className={cn("px-2.5 py-0.5 font-semibold", roleColors[role] || roleColors.USER)}>
                 {role}
             </Badge>
         );
@@ -76,23 +77,23 @@ const ProfilePage = () => {
     const getStatusBadge = (status: string) => {
         const statusConfig: Record<string, { color: string; icon: React.ReactElement }> = {
             PENDING: {
-                color: "bg-yellow-100 text-yellow-800",
-                icon: <Clock className="w-3 h-3 mr-1" />,
+                color: "bg-yellow-500/10 text-yellow-600 border-yellow-200/20",
+                icon: <Clock className="w-3.5 h-3.5 mr-1" />,
             },
             APPROVED: {
-                color: "bg-green-100 text-green-800",
-                icon: <CheckCircle className="w-3 h-3 mr-1" />,
+                color: "bg-emerald-500/10 text-emerald-600 border-emerald-200/20",
+                icon: <CheckCircle className="w-3.5 h-3.5 mr-1" />,
             },
             DENIED: {
-                color: "bg-red-100 text-red-800",
-                icon: <XCircle className="w-3 h-3 mr-1" />,
+                color: "bg-rose-500/10 text-rose-600 border-rose-200/20",
+                icon: <XCircle className="w-3.5 h-3.5 mr-1" />,
             },
         };
 
         const config = statusConfig[status] || statusConfig.PENDING;
 
         return (
-            <Badge className={`${config.color} flex items-center w-fit`}>
+            <Badge variant="outline" className={cn(config.color, "flex items-center w-fit px-2.5 py-0.5 font-semibold")}>
                 {config.icon}
                 {status}
             </Badge>
@@ -104,57 +105,57 @@ const ProfilePage = () => {
     return (
         <div className="container mx-auto p-6 max-w-4xl space-y-6">
             <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900">Profile</h1>
-                <p className="text-muted-foreground">Manage your account information and settings.</p>
+                <h1 className="text-3xl font-bold tracking-tight text-foreground">Profile</h1>
+                <p className="text-muted-foreground font-medium">Manage your account information and settings.</p>
             </div>
 
             {/* User Information Card */}
-            <Card>
+            <Card className="bg-card border-border shadow-sm dark:shadow-none">
                 <CardHeader>
-                    <CardTitle>Personal Information</CardTitle>
-                    <CardDescription>Your account details and role information.</CardDescription>
+                    <CardTitle className="text-foreground">Personal Information</CardTitle>
+                    <CardDescription className="text-muted-foreground font-medium">Your account details and role information.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-indigo-50 rounded-lg">
-                                <User className="w-5 h-5 text-indigo-600" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900/10">
+                                <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                             </div>
                             <div>
-                                <p className="text-sm text-muted-foreground">Full Name</p>
-                                <p className="font-medium">{user.firstName} {user.lastName}</p>
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5">Full Name</p>
+                                <p className="font-semibold text-foreground">{user.firstName} {user.lastName}</p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-indigo-50 rounded-lg">
-                                <Mail className="w-5 h-5 text-indigo-600" />
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900/10">
+                                <Mail className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                             </div>
                             <div>
-                                <p className="text-sm text-muted-foreground">Email</p>
-                                <p className="font-medium">{user.email}</p>
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5">Email</p>
+                                <p className="font-semibold text-foreground">{user.email}</p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-indigo-50 rounded-lg">
-                                <Shield className="w-5 h-5 text-indigo-600" />
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900/10">
+                                <Shield className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                             </div>
                             <div>
-                                <p className="text-sm text-muted-foreground">Role</p>
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5">Role</p>
                                 <div className="mt-1">
                                     {getRoleBadge(user.role as string)}
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-indigo-50 rounded-lg">
-                                <Calendar className="w-5 h-5 text-indigo-600" />
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900/10">
+                                <Calendar className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                             </div>
                             <div>
-                                <p className="text-sm text-muted-foreground">Member Since</p>
-                                <p className="font-medium">
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-0.5">Member Since</p>
+                                <p className="font-semibold text-foreground">
                                     {new Date(user.createdAt).toLocaleDateString()}
                                 </p>
                             </div>
@@ -165,77 +166,79 @@ const ProfilePage = () => {
 
             {/* Trainer Request Card */}
             {user.role === "USER" && (
-                <Card>
+                <Card className="bg-card border-border shadow-sm dark:shadow-none">
                     <CardHeader>
-                        <CardTitle>Become a Trainer</CardTitle>
-                        <CardDescription>
+                        <CardTitle className="text-foreground">Become a Trainer</CardTitle>
+                        <CardDescription className="text-muted-foreground font-medium">
                             Request to upgrade your account to a trainer role to share content with the community.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {isLoading ? (
-                            <p className="text-muted-foreground">Loading request status...</p>
+                            <p className="text-muted-foreground italic">Loading request status...</p>
                         ) : trainerRequest ? (
                             <div className="space-y-4">
-                                <div className="p-4 bg-gray-50 rounded-lg space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <p className="font-medium">Request Status</p>
+                                <div className="p-4 bg-muted/30 dark:bg-muted/10 rounded-xl border border-border space-y-4">
+                                    <div className="flex items-center justify-between border-b border-border pb-3">
+                                        <p className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Request Status</p>
                                         {getStatusBadge(trainerRequest.status)}
                                     </div>
                                     {trainerRequest.message && (
-                                        <div>
-                                            <p className="text-sm text-muted-foreground mb-1">Your Message:</p>
-                                            <p className="text-sm">{trainerRequest.message}</p>
+                                        <div className="bg-background/50 p-3 rounded-lg border border-border/50">
+                                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Your Message:</p>
+                                            <p className="text-sm text-foreground italic">"{trainerRequest.message}"</p>
                                         </div>
                                     )}
-                                    <div className="text-sm text-muted-foreground">
+                                    <div className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                                        <Calendar className="w-3.5 h-3.5" />
                                         Submitted on {new Date(trainerRequest.createdAt).toLocaleDateString()}
                                     </div>
                                 </div>
 
                                 {trainerRequest.status === "PENDING" && (
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-sm text-muted-foreground bg-yellow-500/5 p-3 rounded-lg border border-yellow-500/10 italic">
                                         Your request is being reviewed by an administrator. You'll be notified once it's processed.
                                     </p>
                                 )}
 
                                 {trainerRequest.status === "DENIED" && (
                                     <div className="space-y-3">
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-sm text-muted-foreground bg-rose-500/5 p-3 rounded-lg border border-rose-500/10">
                                             Your previous request was denied. You can submit a new request with additional information.
                                         </p>
                                     </div>
                                 )}
 
                                 {trainerRequest.status === "APPROVED" && (
-                                    <p className="text-sm text-green-600 font-medium">
+                                    <p className="text-sm text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/5 p-3 rounded-lg border border-emerald-500/10 animate-pulse">
                                         Congratulations! Your request has been approved. Please refresh the page to see your new role.
                                     </p>
                                 )}
                             </div>
                         ) : (
-                            <p className="text-muted-foreground">You haven't submitted a trainer request yet.</p>
+                            <p className="text-muted-foreground italic">You haven't submitted a trainer request yet.</p>
                         )}
 
                         {canRequestTrainer && (
-                            <div className="space-y-3 pt-2">
+                            <div className="space-y-4 pt-2">
                                 <div className="space-y-2">
-                                    <Label htmlFor="message">Message to Admin</Label>
+                                    <Label htmlFor="message" className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Message to Admin</Label>
                                     <Input
                                         id="message"
                                         placeholder="Tell us why you want to become a trainer..."
                                         value={requestMessage}
                                         onChange={(e) => setRequestMessage(e.target.value)}
                                         disabled={isSubmitting}
+                                        className="bg-muted/50 border-border h-12 rounded-xl focus:bg-background transition-all"
                                     />
-                                    <p className="text-xs text-muted-foreground">
+                                    <p className="text-xs text-muted-foreground font-medium italic">
                                         Explain your qualifications and why you'd like to become a trainer.
                                     </p>
                                 </div>
                                 <Button
                                     onClick={handleSubmitRequest}
                                     disabled={isSubmitting || !requestMessage.trim()}
-                                    className="w-full md:w-auto"
+                                    className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-11 px-6 font-bold shadow-lg shadow-indigo-500/20"
                                 >
                                     {isSubmitting ? "Submitting..." : "Submit Trainer Request"}
                                 </Button>
@@ -246,18 +249,21 @@ const ProfilePage = () => {
             )}
 
             {(user.role === "TRAINER" || user.role === "ADMIN") && (
-                <Card className="border-green-200 bg-green-50/50">
-                    <CardContent className="pt-6">
-                        <div className="flex items-center gap-3">
-                            <CheckCircle className="w-6 h-6 text-green-600" />
+                <Card className="border-indigo-500/20 bg-indigo-500/5 dark:bg-indigo-500/5 backdrop-blur-sm overflow-hidden relative">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-3xl -mr-16 -mt-16 rounded-full" />
+                    <CardContent className="pt-6 relative">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-500/30">
+                                <CheckCircle className="w-6 h-6 text-white" />
+                            </div>
                             <div>
-                                <p className="font-medium text-green-900">
-                                    {user.role === "ADMIN" ? "You're an Administrator" : "You're a Trainer"}
+                                <p className="font-bold text-lg text-foreground">
+                                    {user.role === "ADMIN" ? "Administrator Access" : "Verified Trainer"}
                                 </p>
-                                <p className="text-sm text-green-700">
+                                <p className="text-sm text-muted-foreground font-medium">
                                     {user.role === "ADMIN"
-                                        ? "You have full access to manage the platform."
-                                        : "You can create and share content with the community."}
+                                        ? "You have full administrative control over the platform."
+                                        : "Your profile is verified. You can now create workshops and manage students."}
                                 </p>
                             </div>
                         </div>

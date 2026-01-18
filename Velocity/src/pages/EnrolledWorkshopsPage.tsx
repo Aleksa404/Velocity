@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getUserEnrollments } from "../api/workshopApi";
+import { getUserEnrollments, unenrollFromWorkshop } from "../api/workshopApi";
 import type { WorkshopEnrollment } from "../Types/Workshop";
 import WorkshopCard from "../components/Workshop/WorkshopCard";
 import { toast } from "sonner";
@@ -25,6 +25,17 @@ const EnrolledWorkshopsPage = () => {
             toast.error("Failed to load your enrolled workshops");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleUnenroll = async (workshopId: string) => {
+        try {
+            await unenrollFromWorkshop(workshopId);
+            toast.success("Unenrolled successfully");
+            setEnrollments(enrollments.filter(e => e.workshopId !== workshopId));
+        } catch (error) {
+            console.error("Error unenrolling:", error);
+            toast.error("Failed to unenroll");
         }
     };
 
@@ -79,6 +90,7 @@ const EnrolledWorkshopsPage = () => {
                             key={enrollment.id}
                             workshop={enrollment.workshop!}
                             enrollmentStatus={enrollment.status}
+                            onDelete={handleUnenroll}
                         />
                     ))}
                 </div>

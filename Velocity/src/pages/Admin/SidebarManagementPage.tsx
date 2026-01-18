@@ -8,34 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import * as LucideIcons from "lucide-react";
 import { Search } from "lucide-react";
+import { ICON_LIST, ICON_MAP, type IconName } from "@/lib/icons";
 
-const ICON_LIST = [
-    "Home", "Users", "BookOpen", "UserCircle", "Settings", "LayoutDashboard", "FolderOpen",
-    "Bell", "Calendar", "Mail", "Search", "Star", "Heart", "Share2", "Download", "Upload",
-    "BarChart3", "PieChart", "TrendingUp", "Terminal", "Code2", "Database", "Cpu", "Globe",
-    "Lock", "Unlock", "Eye", "EyeOff", "HelpCircle", "Info", "AlertCircle", "CheckCircle2",
-    "ChevronRight", "ChevronDown", "ChevronUp", "ChevronLeft", "Menu", "X", "Filter", "Layers",
-    "Video", "Play", "Pause", "Image", "FileText", "Music", "Headphones", "Speaker",
-    "Briefcase", "GraduationCap", "Trophy", "Award", "Target", "Zap", "Flame", "Coffee"
-];
 
-const SCROLLBAR_STYLES = `
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
-    border-radius: 10px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #cbd5e1;
-  }
-`;
 
 const IconPicker = ({ value, onChange }: { value: string, onChange: (val: string) => void }) => {
     const [search, setSearch] = useState("");
@@ -45,7 +21,7 @@ const IconPicker = ({ value, onChange }: { value: string, onChange: (val: string
 
     return (
         <div className="space-y-3">
-            <style>{SCROLLBAR_STYLES}</style>
+
             <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
                 <Input
@@ -55,9 +31,10 @@ const IconPicker = ({ value, onChange }: { value: string, onChange: (val: string
                     className="pl-8"
                 />
             </div>
-            <div className="grid grid-cols-6 gap-2 max-h-[200px] overflow-y-auto p-1 border rounded-md custom-scrollbar">
+            <div className="grid grid-cols-6 gap-2 max-h-[200px] overflow-y-auto p-1 border rounded-md [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-300">
                 {filteredIcons.map((iconName) => {
-                    const Icon = (LucideIcons as any)[iconName];
+
+                    const Icon = ICON_MAP[iconName as IconName] ?? ICON_MAP.Home;
                     return (
                         <Button
                             key={iconName}
@@ -102,7 +79,6 @@ export const SidebarManagementPage = () => {
     const [editingSection, setEditingSection] = useState<any>(null);
     const [sectionForm, setSectionForm] = useState({
         title: "",
-        order: 0,
         icon: "",
         path: "",
         roles: "USER,TRAINER,ADMIN"
@@ -115,7 +91,6 @@ export const SidebarManagementPage = () => {
         label: "",
         icon: "",
         path: "",
-        order: 0,
         roles: "USER,TRAINER,ADMIN",
         sectionId: ""
     });
@@ -130,7 +105,6 @@ export const SidebarManagementPage = () => {
             setEditingSection(section);
             setSectionForm({
                 title: section.title,
-                order: section.order,
                 icon: section.icon || "",
                 path: section.path || "",
                 roles: section.roles ? section.roles.join(",") : "USER,TRAINER,ADMIN"
@@ -139,7 +113,6 @@ export const SidebarManagementPage = () => {
             setEditingSection(null);
             setSectionForm({
                 title: "",
-                order: sections.length,
                 icon: "",
                 path: "",
                 roles: "USER,TRAINER,ADMIN"
@@ -152,7 +125,6 @@ export const SidebarManagementPage = () => {
         const rolesArray = sectionForm.roles.split(",").map(r => r.trim()).filter(Boolean);
         const sectionData = {
             title: sectionForm.title,
-            order: sectionForm.order,
             icon: sectionForm.icon || undefined,
             path: sectionForm.path || undefined,
             roles: rolesArray
@@ -188,18 +160,15 @@ export const SidebarManagementPage = () => {
                 label: item.label,
                 icon: item.icon,
                 path: item.path,
-                order: item.order,
                 roles: item.roles.join(","),
                 sectionId
             });
         } else {
             setEditingItem(null);
-            const section = sections.find(s => s.id === sectionId);
             setItemForm({
                 label: "",
                 icon: "FolderOpen",
                 path: "",
-                order: section ? section.items.length : 0,
                 roles: "USER,TRAINER,ADMIN",
                 sectionId
             });
@@ -213,7 +182,6 @@ export const SidebarManagementPage = () => {
             label: itemForm.label,
             icon: itemForm.icon,
             path: itemForm.path,
-            order: parseInt(itemForm.order.toString()),
             roles: rolesArray,
             sectionId: itemForm.sectionId
         };
@@ -403,10 +371,6 @@ export const SidebarManagementPage = () => {
                             <Label>Visible to Roles (comma separated)</Label>
                             <Input value={sectionForm.roles} onChange={(e) => setSectionForm({ ...sectionForm, roles: e.target.value })} placeholder="USER, TRAINER, ADMIN" />
                         </div>
-                        <div className="space-y-2">
-                            <Label>Order</Label>
-                            <Input type="number" value={sectionForm.order} onChange={(e) => setSectionForm({ ...sectionForm, order: parseInt(e.target.value) })} />
-                        </div>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsSectionDialogOpen(false)}>Cancel</Button>
@@ -439,15 +403,9 @@ export const SidebarManagementPage = () => {
                             <Label>Path</Label>
                             <Input value={itemForm.path} onChange={(e) => setItemForm({ ...itemForm, path: e.target.value })} placeholder="e.g., /dashboard" />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>Order</Label>
-                                <Input type="number" value={itemForm.order} onChange={(e) => setItemForm({ ...itemForm, order: parseInt(e.target.value) })} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Roles (comma separated)</Label>
-                                <Input value={itemForm.roles} onChange={(e) => setItemForm({ ...itemForm, roles: e.target.value })} placeholder="USER, TRAINER, ADMIN" />
-                            </div>
+                        <div className="space-y-2">
+                            <Label>Roles (comma separated)</Label>
+                            <Input value={itemForm.roles} onChange={(e) => setItemForm({ ...itemForm, roles: e.target.value })} placeholder="USER, TRAINER, ADMIN" />
                         </div>
                     </div>
                     <DialogFooter>

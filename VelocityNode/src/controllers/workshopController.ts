@@ -132,6 +132,13 @@ export const getAllWorkshops = async (
                             role: true,
                         },
                     },
+                    videos: {
+                        include: {
+                            watchProgress: {
+                                where: { userId: currentUserId },
+                            },
+                        },
+                    },
                     _count: {
                         select: {
                             enrollments: {
@@ -793,6 +800,14 @@ export const getUserEnrollments = async (
                                     where: { status: "APPROVED" },
                                 },
                                 videos: true,
+                                sections: true,
+                            },
+                        },
+                        videos: {
+                            include: {
+                                watchProgress: {
+                                    where: { userId },
+                                },
                             },
                         },
                     },
@@ -842,6 +857,16 @@ export const unenrollFromWorkshop = async (
                 message: "Enrollment not found",
             });
         }
+
+        // Delete all video watch progress for this workshop
+        await prisma.videoWatchProgress.deleteMany({
+            where: {
+                userId,
+                video: {
+                    workshopId,
+                },
+            },
+        });
 
         await prisma.workshopEnrollment.delete({
             where: {

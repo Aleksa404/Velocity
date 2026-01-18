@@ -146,12 +146,7 @@ export const logout = async (req: Request, res: Response<ApiResponse<any>>) => {
     });
 
     return res
-      .status(204)
-      .json({
-        success: true,
-        data: null,
-        message: "Logged out successfully"
-      });
+      .sendStatus(204);
   } catch (error) {
     return res
       .status(500)

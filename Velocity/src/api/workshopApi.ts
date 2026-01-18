@@ -100,10 +100,7 @@ export const reorderSections = async (workshopId: string, sectionIds: string[]) 
     return response.data;
 };
 
-export const moveVideoToSection = async (videoId: string, sectionId: string | null) => {
-    const response = await axiosInstance.patch<ApiResponse<any>>(`${BASE_URL}/${videoId}/section`, { sectionId });
-    return response.data;
-};
+
 
 // Workshop Image Upload
 export const uploadWorkshopImage = async (workshopId: string, imageFile: File) => {

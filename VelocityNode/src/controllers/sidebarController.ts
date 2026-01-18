@@ -43,8 +43,15 @@ export const upsertSection = async (req: Request, res: Response<ApiResponse<any>
                 data: { title, order, icon, path, roles },
             });
         } else {
+            // Get the highest order to append to the end
+            const lastSection = await prisma.sidebarSection.findFirst({
+                orderBy: { order: 'desc' },
+                select: { order: true }
+            });
+            const nextOrder = lastSection ? lastSection.order + 1 : 0;
+
             section = await prisma.sidebarSection.create({
-                data: { title, order: order || 0, icon, path, roles: roles || [] },
+                data: { title, order: nextOrder, icon, path, roles: roles || [] },
             });
         }
 
@@ -95,8 +102,16 @@ export const upsertItem = async (req: Request, res: Response<ApiResponse<any>>) 
                 data: { label, icon, path, order, roles, sectionId },
             });
         } else {
+            // Get highest order in the specific section
+            const lastItem = await prisma.sidebarItem.findFirst({
+                where: { sectionId },
+                orderBy: { order: 'desc' },
+                select: { order: true }
+            });
+            const nextOrder = lastItem ? lastItem.order + 1 : 0;
+
             item = await prisma.sidebarItem.create({
-                data: { label, icon, path, order: order || 0, roles: roles || [], sectionId },
+                data: { label, icon, path, order: nextOrder, roles: roles || [], sectionId },
             });
         }
 

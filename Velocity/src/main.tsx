@@ -16,6 +16,7 @@ import CreateWorkshopPage from "./pages/Trainer/CreateWorkshopPage.tsx";
 import WorkshopManagementPage from "./pages/Trainer/WorkshopManagementPage.tsx";
 import MyWorkshopsPage from "./pages/Trainer/MyWorkshopsPage.tsx";
 import EnrolledWorkshopsPage from "./pages/EnrolledWorkshopsPage.tsx";
+import { ThemeProvider } from "./components/theme-provider.tsx";
 
 const router = createBrowserRouter([
   {
@@ -41,6 +42,8 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme" attribute="class">
+      <RouterProvider router={router} />
+    </ThemeProvider>
   </StrictMode>
 );

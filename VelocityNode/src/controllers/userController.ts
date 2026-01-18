@@ -67,7 +67,6 @@ export const updateUserRole = async (
 ) => {
   const { id } = req.params;
   const { role } = req.body;
-  console.log("Updating user role for ID:", id, "to role:", role);
   try {
     const updatedUser = await prisma.user.update({
       where: { id: id },
@@ -92,7 +91,6 @@ export const updateUserRole = async (
 };
 
 export const getCurrentUser = async (req: Request, res: Response) => {
-  console.log("ovde");
   try {
     const { id } = req.user!;
     if (!id) {

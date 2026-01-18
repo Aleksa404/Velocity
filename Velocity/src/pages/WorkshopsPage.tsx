@@ -82,14 +82,14 @@ const WorkshopsPage = () => {
         <div className="container mx-auto p-6 max-w-7xl space-y-6">
             <div className="flex items-center justify-between">
                 <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Workshops</h1>
-                    <p className="text-muted-foreground">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">Workshops</h1>
+                    <p className="text-muted-foreground font-medium">
                         Browse and enroll in workshops led by professional trainers.
                     </p>
                 </div>
                 {user && (user.role === "TRAINER" || user.role === "ADMIN") && (
                     <Link to="/workshops/create">
-                        <Button>
+                        <Button className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-6 h-11 font-semibold shadow-lg shadow-indigo-500/20">
                             <Plus className="w-4 h-4 mr-2" />
                             Create Workshop
                         </Button>
@@ -99,13 +99,13 @@ const WorkshopsPage = () => {
 
             {/* Search Bar */}
             <div className="relative max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
                     type="text"
                     placeholder="Search workshops..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 bg-gray-100 border-gray-300 focus:bg-white transition-colors"
+                    className="pl-10 bg-muted/50 border-border focus:bg-background transition-all h-11 rounded-xl dark:placeholder:text-muted-foreground/50"
                 />
                 {isLoading && searchQuery && (
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">

@@ -2,12 +2,13 @@ import { useLocation, useNavigate } from "react-router";
 import { useUserStore } from "../stores/userStore";
 import { useSidebarStore } from "@/stores/sidebarStore";
 import { useEffect, useState } from "react";
-import * as LucideIcons from "lucide-react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ICON_LIST, ICON_MAP, type IconName } from "@/lib/icons";
+
 
 interface NavItem {
     label: string;
@@ -38,14 +39,13 @@ const Sidebar = () => {
 
     // Icon mapper using dynamic Lucide icons
     const getIcon = (iconName?: string) => {
-        if (!iconName) return <LucideIcons.FolderOpen className="w-5 h-5" />;
-        const Icon = (LucideIcons as any)[iconName];
-        return Icon ? <Icon className="w-5 h-5" /> : <LucideIcons.FolderOpen className="w-5 h-5" />;
+        if (!iconName) return <ICON_MAP.Home className="w-5 h-5" />;
+        const Icon = ICON_MAP[iconName as IconName] ?? ICON_MAP.Home;
+        return Icon ? <Icon className="w-5 h-5" /> : <ICON_MAP.Home className="w-5 h-5" />;
     };
 
     const NavButton = ({ item }: { item: NavItem }) => {
-        const isActive = location.pathname === item.path ||
-            (item.path !== "/" && location.pathname.startsWith(item.path));
+        const isActive = location.pathname === item.path
 
         const button = (
             <button
@@ -54,8 +54,8 @@ const Sidebar = () => {
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
                     "hover:bg-indigo-50 hover:text-indigo-600",
                     isActive
-                        ? "bg-indigo-100 text-indigo-700 font-medium"
-                        : "text-gray-600",
+                        ? "bg-indigo-100 text-indigo-700 font-medium dark:bg-indigo-900/30 dark:text-indigo-400"
+                        : "text-gray-600 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800",
                     isCollapsed && "justify-center px-2"
                 )}
             >
@@ -86,7 +86,7 @@ const Sidebar = () => {
         <TooltipProvider>
             <aside
                 className={cn(
-                    "hidden md:flex flex-col bg-white border-r border-gray-200 transition-all duration-300",
+                    "hidden md:flex flex-col bg-white dark:bg-sidebar border-r border-gray-200 dark:border-border transition-all duration-300",
                     isCollapsed ? "w-16" : "w-64"
                 )}
             >
@@ -104,13 +104,16 @@ const Sidebar = () => {
                                 {section.title && !isCollapsed && (
                                     <div className="flex items-center gap-2 mb-2 px-3">
                                         {section.icon && (
-                                            <span className="text-gray-400">
+                                            <span className="text-gray-400 dark:text-gray-500">
                                                 {getIcon(section.icon)}
                                             </span>
                                         )}
                                         {section.path ? (
+
                                             <button
-                                                onClick={() => navigate(section.path as string)}
+                                                onClick={() => navigate(section.path as string)
+
+                                                }
                                                 className={cn(
                                                     "text-xs font-semibold uppercase tracking-wider transition-colors",
                                                     location.pathname === section.path
@@ -149,14 +152,15 @@ const Sidebar = () => {
                     })}
                 </div>
 
-                {/* Collapse Button */}
-                <div className="px-3 pb-4">
+
+                {/* Footer Actions */}
+                <div className="px-3 pb-4 flex items-center gap-2">
                     <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setIsCollapsed(!isCollapsed)}
                         className={cn(
-                            "w-full flex items-center gap-2 text-gray-500 hover:text-gray-700",
+                            "flex-1 flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200",
                             isCollapsed && "justify-center"
                         )}
                     >
