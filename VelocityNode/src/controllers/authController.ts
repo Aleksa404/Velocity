@@ -175,10 +175,28 @@ export const refresh = async (req: Request, res: Response) => {
     );
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: "User not found"
+      });
+    }
+
+    const responseUser: UserLoginResponse = {
+      id: user.id,
+      email: user.email,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+
     const accessToken = generateAccessToken({
       id: userId,
-      email: user?.email,
-      role: user?.role,
+      email: user.email,
+      role: user.role,
     });
 
     res.cookie("refreshToken", newRefreshToken, {
@@ -188,7 +206,7 @@ export const refresh = async (req: Request, res: Response) => {
       maxAge: 30 * 24 * 60 * 60 * 1000, //30 days
     });
 
-    res.json({ accessToken, user });
+    res.json({ accessToken, user: responseUser });
   } catch (error: any) {
     return res.status(401).json({ error: error.message });
   }

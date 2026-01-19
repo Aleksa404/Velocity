@@ -3,6 +3,7 @@ import YouTube, { type YouTubeProps } from "react-youtube";
 import { updateVideoProgress, markVideoComplete } from "../../api/videoApi";
 import { toast } from "sonner";
 import { getFullVideoUrl, getYouTubeId, isYouTubeUrl } from "@/lib/videoUtils";
+import { VideoShell } from "./VideoShell";
 
 interface VideoPlayerProps {
     videoUrl: string;         // Video URL (local path or YouTube URL)
@@ -198,7 +199,8 @@ const VideoPlayer = ({
     // ============== RENDER ==============
     if (isYouTube && youtubeId) {
         return (
-            <div className={`aspect-video w-full ${className}`}>
+            // <div className={`aspect-video w-full ${className}`}>
+            <VideoShell className={className}>
                 <YouTube
                     videoId={youtubeId}
                     opts={youtubeOpts}
@@ -207,12 +209,14 @@ const VideoPlayer = ({
                     className="w-full h-full"
                     iframeClassName="w-full h-full"
                 />
-            </div>
+                {/* </div> */}
+            </VideoShell>
         );
     }
 
     return (
-        <div className={`aspect-video w-full bg-black rounded-lg overflow-hidden ${className}`}>
+        // <div className={`aspect-video w-full bg-black rounded-lg overflow-hidden ${className}`}>
+        <VideoShell className={className}>
             <video
                 ref={videoRef}
                 src={fullVideoUrl}
@@ -223,7 +227,8 @@ const VideoPlayer = ({
             >
                 Your browser does not support the video tag.
             </video>
-        </div>
+        </VideoShell>
+        // </div>
     );
 };
 

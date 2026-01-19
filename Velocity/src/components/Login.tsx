@@ -67,7 +67,7 @@ const LoginPage = () => {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4 transition-colors duration-300">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6 text-center">
             <div className="mb-4 flex justify-center">
@@ -88,8 +88,8 @@ const LoginPage = () => {
                 </svg>
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900">Welcome back!</h2>
-            <p className="mt-2 text-gray-600">
+            <h2 className="text-2xl font-bold text-foreground">Welcome back!</h2>
+            <p className="mt-2 text-muted-foreground">
               You have been successfully logged in.
             </p>
           </CardContent>
@@ -99,7 +99,7 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 transition-colors duration-300">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">

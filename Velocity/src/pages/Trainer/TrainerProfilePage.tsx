@@ -152,7 +152,9 @@ const TrainerProfilePage = () => {
                                 variant={isFollowing ? "outline" : "default"}
                                 className={cn(
                                     "min-w-[140px] rounded-xl h-11 font-bold transition-all shadow-lg",
-                                    !isFollowing ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/20" : "bg-muted/50 border-border text-foreground hover:bg-muted"
+                                    !isFollowing
+                                        ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/20"
+                                        : "bg-muted/50 dark:bg-muted/10 border-border text-foreground hover:bg-muted"
                                 )}
                             >
                                 {isFollowing ? (
@@ -198,7 +200,7 @@ const TrainerProfilePage = () => {
                 </div>
 
                 {!trainer.workshops || trainer.workshops.length === 0 ? (
-                    <Card className="bg-card border-border shadow-sm dark:shadow-none">
+                    <Card className="bg-card border-border shadow-sm dark:shadow-none border-dashed">
                         <CardContent className="p-12">
                             <div className="text-center">
                                 <Calendar className="w-12 h-12 mx-auto text-muted-foreground opacity-20 mb-4" />

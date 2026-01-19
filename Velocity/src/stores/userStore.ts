@@ -58,9 +58,9 @@ export const useUserStore = create<userState>()(
 
         set({ isLoading: true });
         try {
-          const response = await axiosInstance.get<{ user: User }>("/users/me");
+          const response = await axiosInstance.get<User>("/users/me");
           set({
-            user: response.data.user,
+            user: response.data,
             isAuthenticated: true,
             isLoading: false,
           });

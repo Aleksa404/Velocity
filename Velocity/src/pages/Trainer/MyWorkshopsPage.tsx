@@ -70,7 +70,7 @@ const MyWorkshopsPage = () => {
                                 <ArrowLeft className="w-5 h-5" />
                             </Button>
                         </Link>
-                        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Managed Workshops</h1>
+                        <h1 className="text-3xl font-bold tracking-tight text-foreground">Managed Workshops</h1>
                     </div>
                     <p className="text-muted-foreground ml-12">
                         Create and manage your workshop content, sections, and student progress.
@@ -85,11 +85,11 @@ const MyWorkshopsPage = () => {
             </div>
 
             {workshops.length === 0 ? (
-                <div className="text-center py-16 bg-white rounded-xl border border-gray-100 shadow-sm flex flex-col items-center">
-                    <div className="bg-indigo-50 p-4 rounded-full mb-4">
+                <div className="text-center py-16 bg-card rounded-xl border border-border shadow-sm flex flex-col items-center">
+                    <div className="bg-indigo-50/10 p-4 rounded-full mb-4">
                         <Plus className="w-8 h-8 text-indigo-600" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900">No workshops created</h3>
+                    <h3 className="text-xl font-semibold text-foreground">No workshops created</h3>
                     <p className="text-muted-foreground mt-2 max-w-sm">
                         You haven't created any workshops yet. Start sharing your knowledge with the world.
                     </p>

@@ -102,7 +102,7 @@ const CreateWorkshopPage = () => {
     return (
         <div className="container mx-auto p-6 max-w-3xl space-y-6">
             <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900">Create Workshop</h1>
+                <h1 className="text-3xl font-bold tracking-tight text-foreground">Create Workshop</h1>
                 <p className="text-muted-foreground">
                     Create a new workshop for your followers to enroll in and access your content.
                 </p>
@@ -142,11 +142,10 @@ const CreateWorkshopPage = () => {
                             />
                         </div>
 
-                        {/* Image Upload */}
                         <div className="space-y-2">
                             <Label>Cover Image (optional)</Label>
                             {imagePreview ? (
-                                <div className="relative rounded-lg overflow-hidden border border-gray-200">
+                                <div className="relative rounded-lg overflow-hidden border border-border">
                                     <img
                                         src={imagePreview}
                                         alt="Preview"
@@ -164,14 +163,14 @@ const CreateWorkshopPage = () => {
                                 </div>
                             ) : (
                                 <div
-                                    className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center hover:border-indigo-300 hover:bg-indigo-50/50 transition-colors cursor-pointer"
+                                    className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-indigo-400/50 hover:bg-indigo-500/5 transition-colors cursor-pointer"
                                     onClick={() => fileInputRef.current?.click()}
                                 >
-                                    <ImagePlus className="h-10 w-10 mx-auto text-gray-400 mb-3" />
-                                    <p className="text-sm text-gray-500">
+                                    <ImagePlus className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+                                    <p className="text-sm text-muted-foreground font-medium">
                                         Click to upload a cover image
                                     </p>
-                                    <p className="text-xs text-gray-400 mt-1">
+                                    <p className="text-xs text-muted-foreground/60 mt-1">
                                         JPEG, PNG, or WebP (max 5MB)
                                     </p>
                                 </div>

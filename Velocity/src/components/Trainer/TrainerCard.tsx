@@ -21,36 +21,36 @@ const TrainerCard = ({ trainer, onFollowToggle, isFollowing }: TrainerCardProps)
 
     return (
         <Link to={`/trainers/${trainer.id}`}>
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+            <Card className="hover:shadow-lg transition-all cursor-pointer h-full bg-card border-border dark:hover:border-indigo-500/30">
                 <CardHeader>
                     <div className="flex items-start justify-between">
                         <div>
-                            <CardTitle className="text-xl">
+                            <CardTitle className="text-xl text-foreground">
                                 {trainer.first_name} {trainer.last_name}
                             </CardTitle>
-                            <CardDescription>{trainer.email}</CardDescription>
+                            <CardDescription className="text-muted-foreground">{trainer.email}</CardDescription>
                         </div>
-                        <Badge className="bg-blue-100 text-blue-800">
+                        <Badge className="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20">
                             {trainer.role}
                         </Badge>
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-3 gap-4 text-sm">
-                        <div className="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
-                            <Users className="w-5 h-5 text-indigo-600 mb-1" />
-                            <span className="font-semibold">{trainer._count?.followers || 0}</span>
-                            <span className="text-muted-foreground text-xs">Followers</span>
+                        <div className="flex flex-col items-center p-3 bg-muted/50 dark:bg-muted/10 rounded-lg border border-border/50">
+                            <Users className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mb-1" />
+                            <span className="font-semibold text-foreground">{trainer._count?.followers || 0}</span>
+                            <span className="text-muted-foreground text-xs uppercase tracking-tighter">Followers</span>
                         </div>
-                        <div className="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
-                            <Video className="w-5 h-5 text-indigo-600 mb-1" />
-                            <span className="font-semibold">{trainer._count?.videos || 0}</span>
-                            <span className="text-muted-foreground text-xs">Videos</span>
+                        <div className="flex flex-col items-center p-3 bg-muted/50 dark:bg-muted/10 rounded-lg border border-border/50">
+                            <Video className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mb-1" />
+                            <span className="font-semibold text-foreground">{trainer._count?.videos || 0}</span>
+                            <span className="text-muted-foreground text-xs uppercase tracking-tighter">Videos</span>
                         </div>
-                        <div className="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
-                            <Calendar className="w-5 h-5 text-indigo-600 mb-1" />
-                            <span className="font-semibold">{trainer._count?.workshops || 0}</span>
-                            <span className="text-muted-foreground text-xs">Workshops</span>
+                        <div className="flex flex-col items-center p-3 bg-muted/50 dark:bg-muted/10 rounded-lg border border-border/50">
+                            <Calendar className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mb-1" />
+                            <span className="font-semibold text-foreground">{trainer._count?.workshops || 0}</span>
+                            <span className="text-muted-foreground text-xs uppercase tracking-tighter">Workshops</span>
                         </div>
                     </div>
 

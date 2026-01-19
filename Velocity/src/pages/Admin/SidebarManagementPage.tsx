@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trash2, Plus, Edit, ArrowUp, ArrowDown, Shield } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Search } from "lucide-react";
@@ -23,7 +23,7 @@ const IconPicker = ({ value, onChange }: { value: string, onChange: (val: string
         <div className="space-y-3">
 
             <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                     placeholder="Search icons..."
                     value={search}
@@ -31,7 +31,7 @@ const IconPicker = ({ value, onChange }: { value: string, onChange: (val: string
                     className="pl-8"
                 />
             </div>
-            <div className="grid grid-cols-6 gap-2 max-h-[200px] overflow-y-auto p-1 border rounded-md [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-300">
+            <div className="grid grid-cols-6 gap-2 max-h-[200px] overflow-y-auto p-1 border border-border rounded-md [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
                 {filteredIcons.map((iconName) => {
 
                     const Icon = ICON_MAP[iconName as IconName] ?? ICON_MAP.Home;
@@ -53,8 +53,8 @@ const IconPicker = ({ value, onChange }: { value: string, onChange: (val: string
                     );
                 })}
             </div>
-            <div className="text-[10px] text-gray-400 text-center uppercase tracking-wider">
-                Selected: <span className="font-bold text-indigo-600">{value || "None"}</span>
+            <div className="text-[10px] text-muted-foreground text-center uppercase tracking-wider">
+                Selected: <span className="font-bold text-indigo-600 dark:text-indigo-400">{value || "None"}</span>
             </div>
         </div>
     );
@@ -219,12 +219,12 @@ export const SidebarManagementPage = () => {
 
     return (
         <div className="p-6 max-w-4xl mx-auto space-y-8">
-            <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+            <div className="flex justify-between items-center bg-card p-4 rounded-xl border border-border shadow-sm">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Sidebar Management</h1>
-                    <p className="text-sm text-gray-500 mt-1">Configure navigation structure, roles, and ordering.</p>
+                    <h1 className="text-3xl font-bold text-foreground">Sidebar Management</h1>
+                    <p className="text-sm text-muted-foreground mt-1">Configure navigation structure, roles, and ordering.</p>
                 </div>
-                <Button onClick={() => handleOpenSectionDialog()} size="lg" className="bg-indigo-600 hover:bg-indigo-700 shadow-sm">
+                <Button onClick={() => handleOpenSectionDialog()} size="lg" className="bg-indigo-600 hover:bg-indigo-700 shadow-sm text-white">
                     <Plus className="w-4 h-4 mr-2" />
                     Add Section
                 </Button>
@@ -232,14 +232,14 @@ export const SidebarManagementPage = () => {
 
             <div className="space-y-6">
                 {sections.map((section, sectionIdx) => (
-                    <Card key={section.id} className="relative group border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-                        <CardHeader className="pb-3 flex flex-row items-center justify-between bg-gray-50/50">
+                    <Card key={section.id} className="relative group border-border overflow-hidden hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-3 flex flex-row items-center justify-between bg-muted/30">
                             <div className="flex items-center gap-3">
                                 <div className="flex flex-col gap-1">
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-6 w-6 text-gray-400 hover:text-indigo-600"
+                                        className="h-6 w-6 text-muted-foreground hover:text-indigo-600"
                                         disabled={sectionIdx === 0}
                                         onClick={() => handleMoveSection(sectionIdx, 'up')}
                                     >
@@ -257,13 +257,13 @@ export const SidebarManagementPage = () => {
                                 </div>
                                 <div className="flex flex-col">
                                     <CardTitle className="text-lg font-bold flex items-center gap-2">
-                                        {section.title || <span className="text-gray-400 italic font-normal">Untitled Section</span>}
+                                        {section.title || <span className="text-muted-foreground italic font-normal">Untitled Section</span>}
                                         {section.path && <Badge variant="secondary" className="text-[10px] py-0">{section.path}</Badge>}
                                     </CardTitle>
                                     <div className="flex items-center gap-2 mt-1">
-                                        {section.icon && <span className="text-xs text-gray-500 flex items-center gap-1"><Edit className="w-3 h-3" /> {section.icon}</span>}
+                                        {section.icon && <span className="text-xs text-muted-foreground flex items-center gap-1"><Edit className="w-3 h-3" /> {section.icon}</span>}
                                         {section.roles && section.roles.length > 0 && (
-                                            <span className="text-[10px] text-gray-400 flex items-center gap-1 uppercase tracking-tighter">
+                                            <span className="text-[10px] text-muted-foreground/80 flex items-center gap-1 uppercase tracking-tighter">
                                                 <Shield className="w-3 h-3" /> {section.roles.join(", ")}
                                             </span>
                                         )}
@@ -282,13 +282,13 @@ export const SidebarManagementPage = () => {
                         <CardContent className="pt-4">
                             <div className="space-y-2">
                                 {section.items.map((item, itemIdx) => (
-                                    <div key={item.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 group/item hover:border-indigo-200 transition-all shadow-sm">
+                                    <div key={item.id} className="flex items-center justify-between p-3 bg-card rounded-lg border border-border group/item hover:border-indigo-400/50 transition-all shadow-sm">
                                         <div className="flex items-center gap-3">
                                             <div className="flex flex-col gap-0.5">
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="h-5 w-5 text-gray-300 hover:text-indigo-600"
+                                                    className="h-5 w-5 text-muted-foreground/40 hover:text-indigo-600"
                                                     disabled={itemIdx === 0}
                                                     onClick={() => handleMoveItem(section.id, itemIdx, 'up')}
                                                 >
@@ -297,7 +297,7 @@ export const SidebarManagementPage = () => {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="h-5 w-5 text-gray-300 hover:text-indigo-600"
+                                                    className="h-5 w-5 text-muted-foreground/40 hover:text-indigo-600"
                                                     disabled={itemIdx === section.items.length - 1}
                                                     onClick={() => handleMoveItem(section.id, itemIdx, 'down')}
                                                 >
@@ -305,15 +305,15 @@ export const SidebarManagementPage = () => {
                                                 </Button>
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="font-semibold text-gray-900">{item.label}</span>
-                                                <span className="text-xs text-gray-400 font-mono">{item.path}</span>
+                                                <span className="font-semibold text-foreground">{item.label}</span>
+                                                <span className="text-xs text-muted-foreground font-mono">{item.path}</span>
                                             </div>
                                             <div className="flex gap-1 ml-2">
-                                                <Badge variant="outline" className="text-[10px] font-medium bg-gray-50 uppercase text-gray-500 px-1.5 h-4">
+                                                <Badge variant="outline" className="text-[10px] font-medium bg-muted uppercase text-muted-foreground px-1.5 h-4">
                                                     {item.icon}
                                                 </Badge>
                                                 {item.roles.map(role => (
-                                                    <Badge key={role} className="text-[10px] h-4 px-1.5 bg-indigo-50 text-indigo-600 border-indigo-100 hover:bg-indigo-100">
+                                                    <Badge key={role} className="text-[10px] h-4 px-1.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20">
                                                         {role}
                                                     </Badge>
                                                 ))}
@@ -331,7 +331,7 @@ export const SidebarManagementPage = () => {
                                 ))}
                                 <Button
                                     variant="outline"
-                                    className="w-full mt-4 border-dashed border-gray-300 text-gray-500 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50/30 font-medium h-10 transition-all"
+                                    className="w-full mt-4 border-dashed border-border text-muted-foreground hover:text-indigo-600 hover:border-indigo-400/50 hover:bg-indigo-500/5 font-medium h-10 transition-all"
                                     onClick={() => handleOpenItemDialog(section.id)}
                                 >
                                     <Plus className="w-4 h-4 mr-2" />
@@ -348,6 +348,9 @@ export const SidebarManagementPage = () => {
                 <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle>{editingSection ? "Edit Section" : "New Section"}</DialogTitle>
+                        <DialogDescription>
+                            {editingSection ? "Update the details of this sidebar section." : "Create a new section for the sidebar navigation."}
+                        </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="grid grid-cols-2 gap-4">
@@ -384,6 +387,9 @@ export const SidebarManagementPage = () => {
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>{editingItem ? "Edit Item" : "New Item"}</DialogTitle>
+                        <DialogDescription>
+                            {editingItem ? "Update the details of this sidebar item." : "Add a new item to this sidebar section."}
+                        </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-2 gap-4">

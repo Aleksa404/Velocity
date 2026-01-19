@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, Navigate } from "react-router";
 import { getWorkshopById, enrollInWorkshop } from "../api/workshopApi";
 import type { Workshop } from "../Types/Workshop";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -16,6 +15,7 @@ import { toast } from "sonner";
 import { useUserStore } from "../stores/userStore";
 import { Link } from "react-router";
 import VideoPlayer from "../components/Video/VideoPlayer";
+import { VideoShell } from "../components/Video/VideoShell";
 import { getYouTubeThumbnail, isYouTubeUrl, formatDuration } from "@/lib/videoUtils";
 
 const WorkshopDetailPage = () => {
@@ -34,6 +34,12 @@ const WorkshopDetailPage = () => {
         if (id) {
             fetchWorkshop();
         }
+    }, [id]);
+
+    // Reset selected video when ID changes
+    useEffect(() => {
+        setSelectedVideoId(null);
+        setIsPlaying(false);
     }, [id]);
 
     // Auto-select first video when workshop loads
@@ -95,41 +101,54 @@ const WorkshopDetailPage = () => {
     };
 
     const handleProgressUpdate = (videoId: string, watchedSeconds: number, percent: number) => {
-        if (!workshop || !workshop.videos) return;
+        if (!workshop) return;
 
         setWorkshop(prev => {
-            if (!prev || !prev.videos) return prev;
+            if (!prev) return prev;
 
-            const updatedVideos = prev.videos.map(v => {
-                if (v.id === videoId) {
-                    const currentProgress = v.watchProgress?.[0] || {
-                        id: "temp",
-                        userId: user?.id || "",
-                        videoId: videoId,
-                        watchedSeconds: 0,
-                        totalDuration: 0,
-                        percentWatched: 0,
-                        isCompleted: false,
-                        lastWatchedAt: new Date().toISOString()
-                    };
-
-                    return {
-                        ...v,
-                        watchProgress: [{
-                            ...currentProgress,
-                            watchedSeconds,
-                            percentWatched: percent,
-                            isCompleted: percent >= 95,
+            const updateVideoInList = (videos?: any[]) => {
+                if (!videos) return videos;
+                return videos.map(v => {
+                    if (v.id === videoId) {
+                        const currentProgress = v.watchProgress?.[0] || {
+                            id: "temp",
+                            userId: user?.id || "",
+                            videoId: videoId,
+                            watchedSeconds: 0,
+                            totalDuration: 0,
+                            percentWatched: 0,
+                            isCompleted: false,
                             lastWatchedAt: new Date().toISOString()
-                        }]
-                    };
-                }
-                return v;
-            });
+                        };
+
+                        return {
+                            ...v,
+                            watchProgress: [{
+                                ...currentProgress,
+                                watchedSeconds,
+                                percentWatched: percent,
+                                isCompleted: percent >= 95,
+                                lastWatchedAt: new Date().toISOString()
+                            }]
+                        };
+                    }
+                    return v;
+                });
+            };
+
+            // Update top-level videos
+            const updatedTopVideos = updateVideoInList(prev.videos);
+
+            // Update section videos
+            const updatedSections = prev.sections?.map(section => ({
+                ...section,
+                videos: updateVideoInList(section.videos)
+            }));
 
             return {
                 ...prev,
-                videos: updatedVideos
+                videos: updatedTopVideos,
+                sections: updatedSections
             };
         });
     };
@@ -137,10 +156,10 @@ const WorkshopDetailPage = () => {
     const handleVideoComplete = () => {
         fetchWorkshop();
         // Auto-play next video
-        if (workshop?.videos && selectedVideoId) {
-            const currentIndex = workshop.videos.findIndex(v => v.id === selectedVideoId);
-            if (currentIndex < workshop.videos.length - 1) {
-                const nextVideo = workshop.videos[currentIndex + 1];
+        if (allVideos.length > 0 && selectedVideoId) {
+            const currentIndex = allVideos.findIndex(v => v.id === selectedVideoId);
+            if (currentIndex !== -1 && currentIndex < allVideos.length - 1) {
+                const nextVideo = allVideos[currentIndex + 1];
                 setSelectedVideoId(nextVideo.id);
                 toast.success("Moving to next video!");
             }
@@ -181,7 +200,7 @@ const WorkshopDetailPage = () => {
             return (
                 <Button
                     onClick={() => navigate("/login")}
-                    className="bg-white text-indigo-600 hover:bg-gray-100 font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
+                    className="bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-white dark:text-indigo-600 dark:hover:bg-gray-100 font-bold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 border border-indigo-500/20 dark:border-transparent"
                     size="lg"
                 >
                     Log in to Enroll
@@ -193,25 +212,25 @@ const WorkshopDetailPage = () => {
 
         if (workshop.enrollmentStatus === "APPROVED") {
             return (
-                <div className="flex items-center gap-2 bg-green-500/20 text-green-100 px-4 py-2 rounded-full backdrop-blur-sm border border-green-500/30">
+                <div className="flex items-center gap-2 bg-emerald-500/10 dark:bg-green-500/20 text-emerald-700 dark:text-green-100 px-4 py-2 rounded-full backdrop-blur-sm border border-emerald-500/20 dark:border-green-500/30 shadow-sm">
                     <Check className="w-4 h-4" />
-                    <span className="font-medium">Enrolled</span>
+                    <span className="font-bold text-sm">Enrolled</span>
                 </div>
             );
         }
 
         if (workshop.enrollmentStatus === "PENDING") {
             return (
-                <div className="flex items-center gap-2 bg-yellow-500/20 text-yellow-100 px-4 py-2 rounded-full backdrop-blur-sm border border-yellow-500/30">
+                <div className="flex items-center gap-2 bg-amber-500/10 dark:bg-yellow-500/20 text-amber-700 dark:text-yellow-100 px-4 py-2 rounded-full backdrop-blur-sm border border-amber-500/20 dark:border-yellow-500/30 shadow-sm">
                     <Clock className="w-4 h-4" />
-                    <span className="font-medium">Pending Approval</span>
+                    <span className="font-bold text-sm">Pending Approval</span>
                 </div>
             );
         }
 
         if (workshop.enrollmentStatus === "DENIED") {
             return (
-                <Badge className="bg-red-500/20 text-red-100 px-4 py-2 rounded-full backdrop-blur-sm border border-red-500/30">
+                <Badge className="bg-rose-500/10 dark:bg-red-500/20 text-rose-700 dark:text-red-100 px-4 py-2 rounded-full backdrop-blur-sm border border-rose-500/20 dark:border-red-500/30 font-bold">
                     Denied
                 </Badge>
             );
@@ -225,7 +244,7 @@ const WorkshopDetailPage = () => {
                     setIsEnrolling(false);
                 }}
                 disabled={isEnrolling}
-                className="bg-white text-indigo-600 hover:bg-gray-100 font-semibold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
+                className="bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-white dark:text-indigo-600 dark:hover:bg-gray-100 font-bold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 border border-indigo-500/20 dark:border-transparent"
                 size="lg"
             >
                 {isEnrolling ? "Requesting..." : "Start Learning Now"}
@@ -346,9 +365,9 @@ const WorkshopDetailPage = () => {
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                                     {Math.round(overallProgress)}% Complete
                                 </div>
-                                <div className="w-36 h-1.5 bg-muted rounded-full overflow-hidden ring-1 ring-black/5 dark:ring-white/5">
+                                <div className="w-36 h-1.5 bg-gray-200 dark:bg-muted rounded-full overflow-hidden ring-1 ring-black/5 dark:ring-white/5">
                                     <div
-                                        className="h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full transition-all duration-700 ease-out shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+                                        className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-700 ease-out shadow-[0_0_10px_rgba(16,185,129,0.3)]"
                                         style={{ width: `${overallProgress}%` }}
                                     />
                                 </div>
@@ -369,7 +388,7 @@ const WorkshopDetailPage = () => {
                                 {(isOwner || workshop.enrollmentStatus === "APPROVED") ? (
                                     <div className="relative group">
                                         <div className="absolute -inset-4 bg-gradient-to-r from-indigo-500/20 to-purple-600/20 rounded-[2rem] blur-2xl opacity-40 group-hover:opacity-60 transition duration-1000"></div>
-                                        <div className="bg-black rounded-2xl overflow-hidden shadow-2xl aspect-video w-full relative ring-1 ring-white/10 dark:ring-white/5 z-10">
+                                        <VideoShell>
                                             {isPlaying ? (
                                                 <VideoPlayer
                                                     key={selectedVideo.id}
@@ -384,7 +403,7 @@ const WorkshopDetailPage = () => {
                                             ) : (
                                                 renderVideoPlaceholder()
                                             )}
-                                        </div>
+                                        </VideoShell>
                                     </div>
                                 ) : (
                                     <div className="bg-slate-900 rounded-3xl overflow-hidden shadow-2xl aspect-video flex flex-col items-center justify-center text-center p-8 relative ring-1 ring-white/10 group">
@@ -482,37 +501,6 @@ const WorkshopDetailPage = () => {
                                         )}
                                     </div>
 
-                                    {/* About this Workshop Area */}
-                                    <div className="bg-card rounded-2xl border border-border p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none">
-                                        <h3 className="font-bold text-foreground mb-6 flex items-center gap-2 text-lg">
-                                            <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
-                                                <Users className="w-5 h-5" />
-                                            </div>
-                                            About this Workshop
-                                        </h3>
-                                        <div className="flex items-center gap-4 mb-6">
-                                            <Link
-                                                to={`/trainers/${workshop.trainer?.id}`}
-                                                className="flex items-center gap-4 hover:bg-muted p-3 -ml-3 rounded-xl transition-all group border border-transparent"
-                                            >
-                                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-base shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
-                                                    {workshop.trainer?.first_name?.[0]}{workshop.trainer?.last_name?.[0]}
-                                                </div>
-                                                <div>
-                                                    <p className="font-bold text-foreground group-hover:text-indigo-600 transition-colors">
-                                                        {workshop.trainer?.first_name} {workshop.trainer?.last_name}
-                                                    </p>
-                                                    <p className="text-sm text-muted-foreground flex items-center gap-1">
-                                                        Author & Instructor
-                                                        <Badge variant="secondary" className="text-[10px] bg-muted text-muted-foreground ml-2">Verified</Badge>
-                                                    </p>
-                                                </div>
-                                            </Link>
-                                        </div>
-                                        <p className="text-muted-foreground leading-relaxed text-lg">
-                                            {workshop.description}
-                                        </p>
-                                    </div>
                                 </div>
                             </div>
                         ) : (
@@ -529,6 +517,37 @@ const WorkshopDetailPage = () => {
 
                     {/* Sidebar (Course Content) */}
                     <div className="w-full lg:w-[420px] flex-shrink-0 flex flex-col gap-6">
+                        {/* About this Workshop Area */}
+                        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm ring-1 ring-black/5 dark:ring-white/5">
+                            <h3 className="font-bold text-foreground mb-4 flex items-center gap-2 text-lg">
+                                <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
+                                    <Users className="w-5 h-5" />
+                                </div>
+                                About this Workshop
+                            </h3>
+                            <div className="flex items-center gap-4 mb-4">
+                                <Link
+                                    to={`/trainers/${workshop.trainer?.id}`}
+                                    className="flex items-center gap-3 hover:bg-muted p-2 -ml-2 rounded-xl transition-all group"
+                                >
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-xs shadow-md">
+                                        {workshop.trainer?.first_name?.[0]}{workshop.trainer?.last_name?.[0]}
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-foreground group-hover:text-indigo-600 transition-colors text-sm">
+                                            {workshop.trainer?.first_name} {workshop.trainer?.last_name}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                            Instructor
+                                            <Badge variant="secondary" className="text-[8px] bg-muted text-muted-foreground px-1 h-3 flex items-center">Verified</Badge>
+                                        </p>
+                                    </div>
+                                </Link>
+                            </div>
+                            <p className="text-muted-foreground leading-relaxed text-sm line-clamp-4 hover:line-clamp-none transition-all cursor-pointer">
+                                {workshop.description}
+                            </p>
+                        </div>
                         <div className="bg-card rounded-2xl border border-border shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none overflow-hidden flex flex-col max-h-[calc(100vh-140px)] sticky top-24 ring-1 ring-black/5 dark:ring-white/5">
                             <div className="p-5 border-b border-border bg-muted/30 flex items-center justify-between backdrop-blur-sm">
                                 <h3 className="font-bold text-foreground text-lg">Course Content</h3>

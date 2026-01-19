@@ -27,6 +27,12 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(cookieParser());
 
+// Request Logger for debugging
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
+});
+
 // Static file serving for uploads
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 

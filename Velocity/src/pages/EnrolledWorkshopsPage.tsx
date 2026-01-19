@@ -59,7 +59,7 @@ const EnrolledWorkshopsPage = () => {
                             <ArrowLeft className="w-5 h-5" />
                         </Button>
                     </Link>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">
                         My Enrolled Workshops
                     </h1>
                 </div>
@@ -69,11 +69,11 @@ const EnrolledWorkshopsPage = () => {
             </div>
 
             {enrollments.length === 0 ? (
-                <div className="text-center py-16 bg-white rounded-xl border border-gray-100 shadow-sm flex flex-col items-center">
-                    <div className="bg-indigo-50 p-4 rounded-full mb-4">
+                <div className="text-center py-16 bg-card rounded-xl border border-border shadow-sm flex flex-col items-center">
+                    <div className="bg-indigo-50/10 p-4 rounded-full mb-4">
                         <BookOpen className="w-8 h-8 text-indigo-600" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900">No enrollments yet</h3>
+                    <h3 className="text-xl font-semibold text-foreground">No enrollments yet</h3>
                     <p className="text-muted-foreground mt-2 max-w-sm">
                         You haven't enrolled in any workshops. Browse our selection to find the right training for you.
                     </p>

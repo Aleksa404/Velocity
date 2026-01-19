@@ -17,6 +17,7 @@ import {
     deleteSection,
     reorderSections,
     uploadWorkshopImage,
+    getTrainerPendingEnrollments,
 } from "../controllers/workshopController";
 import { authenticateToken, requireRole } from "../middleware/authMiddleware";
 import { workshopImageUpload } from "../utils/uploadConfig";
@@ -26,6 +27,9 @@ const router = Router();
 
 router.use(authenticateToken);
 
+
+// Pending enrollments for trainers
+router.get("/pending-requests", requireRole("TRAINER"), getTrainerPendingEnrollments);
 
 router.get("/my/enrollments", getUserEnrollments);
 router.get("/my", getMyWorkshops);

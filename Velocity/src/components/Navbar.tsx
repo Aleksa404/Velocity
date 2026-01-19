@@ -34,7 +34,6 @@ import {
     Sun,
     Moon,
 } from "lucide-react";
-import { ModeToggle } from "./mode-toggle";
 import { useTheme } from "next-themes";
 
 const Navbar = () => {

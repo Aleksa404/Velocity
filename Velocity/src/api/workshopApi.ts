@@ -74,6 +74,11 @@ export const getUserEnrollments = async () => {
     return response.data;
 };
 
+export const getTrainerPendingEnrollments = async () => {
+    const response = await axiosInstance.get<ApiResponse<Workshop[]>>(`${BASE_URL}/pending-requests`);
+    return response.data;
+};
+
 export const unenrollFromWorkshop = async (workshopId: string) => {
     const response = await axiosInstance.delete<ApiResponse<null>>(`${BASE_URL}/${workshopId}/enroll`);
     return response.data;

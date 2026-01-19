@@ -590,18 +590,18 @@ const WorkshopManagementPage = () => {
                                                             </DropdownMenuContent>
                                                         </DropdownMenu>
 
-                                                        <Button
-                                                            variant="ghost"
+                                                        {/* <Button
+                                                            variant="outline"
                                                             size="icon"
                                                             className="h-9 w-9 rounded-xl text-indigo-500 hover:bg-indigo-500/10 hover:text-indigo-600"
                                                             onClick={() => window.open(video.url, '_blank')}
                                                         >
                                                             <PlayCircle className="w-5 h-5" />
-                                                        </Button>
+                                                        </Button> */}
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="h-9 w-9 rounded-xl text-rose-500 hover:bg-rose-500/10 hover:text-rose-600 sm:opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            className="h-9 w-9 rounded-xl text-rose-500 hover:bg-rose-500/10 hover:text-rose-600"
                                                             onClick={() => setRemoveDialog({ open: true, videoId: video.id })}
                                                         >
                                                             <Trash className="w-4 h-4" />
@@ -660,10 +660,10 @@ const WorkshopManagementPage = () => {
                             Are you sure you want to remove this video? You can add it again later if you change your mind.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter className="gap-2 sm:gap-0">
+                    <AlertDialogFooter className="gap-2 sm:gap-0 ">
                         <AlertDialogCancel className="rounded-xl font-bold h-11 bg-muted border-border text-foreground hover:bg-muted/80">Cancel</AlertDialogCancel>
                         <AlertDialogAction
-                            className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl h-11 px-8 font-bold shadow-lg shadow-rose-500/20"
+                            className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl h-11 px-8  font-bold shadow-lg shadow-rose-500/20"
                             onClick={() => removeDialog.videoId && handleDeleteVideo(removeDialog.videoId)}
                         >
                             Remove

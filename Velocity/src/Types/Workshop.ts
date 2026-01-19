@@ -31,6 +31,7 @@ export interface Workshop {
         sections: number;
     };
     enrollmentStatus?: string | null;
+    enrollments?: WorkshopEnrollment[];
 }
 
 export interface WorkshopEnrollment {

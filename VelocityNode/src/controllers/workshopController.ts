@@ -1164,6 +1164,56 @@ export const getMyWorkshops = async (
     }
 };
 
+export const getTrainerPendingEnrollments = async (
+    req: Request,
+    res: Response<ApiResponse<any>>
+) => {
+    try {
+
+        const { id: trainerId } = req.user!;
+
+        const workshops = await prisma.workshop.findMany({
+            where: { trainerId },
+            include: {
+                enrollments: {
+                    where: { status: "PENDING" },
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                first_name: true,
+                                last_name: true,
+                                email: true,
+                            },
+                        },
+                    },
+                    orderBy: {
+                        createdAt: "desc",
+                    },
+                },
+            },
+        });
+
+        // Only return workshops that have pending enrollments
+        const workshopsWithPending = workshops.filter(
+            (workshop) => workshop.enrollments.length > 0
+        );
+
+        res.status(200).json({
+            success: true,
+            data: workshopsWithPending,
+            message: "Pending enrollments fetched successfully",
+        });
+    } catch (error: any) {
+        console.error("Error fetching trainer pending enrollments:", error);
+        res.status(500).json({
+            success: false,
+            data: null,
+            message: error.message || "Failed to fetch pending enrollments",
+        });
+    }
+};
+
 export const uploadWorkshopImage = async (
     req: Request,
     res: Response<ApiResponse<any>>

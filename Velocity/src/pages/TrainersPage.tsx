@@ -98,7 +98,7 @@ const TrainersPage = () => {
     return (
         <div className="container mx-auto p-6 max-w-7xl space-y-6">
             <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900">Trainers</h1>
+                <h1 className="text-3xl font-bold tracking-tight text-foreground">Trainers</h1>
                 <p className="text-muted-foreground">
                     Discover and follow professional trainers to stay updated with their content.
                 </p>
