@@ -16,7 +16,7 @@ import CreateWorkshopPage from "./pages/Trainer/CreateWorkshopPage.tsx";
 import WorkshopManagementPage from "./pages/Trainer/WorkshopManagementPage.tsx";
 import MyWorkshopsPage from "./pages/Trainer/MyWorkshopsPage.tsx";
 import EnrolledWorkshopsPage from "./pages/EnrolledWorkshopsPage.tsx";
-import { ThemeProvider } from "./components/theme-provider.tsx";
+import { ThemeProvider } from "./service/theme-provider.tsx";
 
 const router = createBrowserRouter([
   {
@@ -30,12 +30,12 @@ const router = createBrowserRouter([
       { path: "adminDashboard", element: <AdminDashboard /> },
       { path: "trainers", element: <TrainersPage /> },
       { path: "trainers/:id", element: <TrainerProfilePage /> },
-      { path: "workshops", element: <WorkshopsPage /> },
-      { path: "workshops/my", element: <MyWorkshopsPage /> },
-      { path: "workshops/enrolled", element: <EnrolledWorkshopsPage /> },
-      { path: "workshops/create", element: <CreateWorkshopPage /> },
-      { path: "workshops/:id", element: <WorkshopDetailPage /> },
-      { path: "workshops/:id/manage", element: <WorkshopManagementPage /> },
+      { path: "course/all", element: <WorkshopsPage /> },
+      { path: "course/my", element: <MyWorkshopsPage /> },
+      { path: "course/enrolled", element: <EnrolledWorkshopsPage /> },
+      { path: "course/create", element: <CreateWorkshopPage /> },
+      { path: "course/:id", element: <WorkshopDetailPage /> },
+      { path: "course/:id/manage", element: <WorkshopManagementPage /> },
     ],
   },
 ]);

@@ -50,7 +50,7 @@ const TrainerCard = ({ trainer, onFollowToggle, isFollowing }: TrainerCardProps)
                         <div className="flex flex-col items-center p-3 bg-muted/50 dark:bg-muted/10 rounded-lg border border-border/50">
                             <Calendar className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mb-1" />
                             <span className="font-semibold text-foreground">{trainer._count?.workshops || 0}</span>
-                            <span className="text-muted-foreground text-xs uppercase tracking-tighter">Workshops</span>
+                            <span className="text-muted-foreground text-xs uppercase tracking-tighter">Courses</span>
                         </div>
                     </div>
 

@@ -47,7 +47,31 @@ const WorkshopCard = ({ workshop, onEnroll, enrollmentStatus, onDelete }: Worksh
     const isDenied = enrollmentStatus === "DENIED";
 
     const getEnrollmentButton = () => {
-        if (!onEnroll || isEnrolled || isPending || isDenied) return null;
+        if (!onEnroll) return null;
+
+        if (isEnrolled) return null;
+
+        if (isPending) {
+            return (
+                <Button
+                    disabled
+                    className="w-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20 h-10 rounded-xl font-medium"
+                >
+                    Enrollment Pending
+                </Button>
+            );
+        }
+
+        if (isDenied) {
+            return (
+                <Button
+                    disabled
+                    className="w-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 h-10 rounded-xl font-medium"
+                >
+                    Enrollment Denied
+                </Button>
+            );
+        }
 
         return (
             <Button
@@ -59,7 +83,7 @@ const WorkshopCard = ({ workshop, onEnroll, enrollmentStatus, onDelete }: Worksh
                     setIsEnrolling(false);
                 }}
                 disabled={isEnrolling}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 h-10 rounded-xl font-medium"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 h-10 rounded-xl font-medium shadow-sm hover:shadow-indigo-500/10 transition-all"
             >
                 {isEnrolling ? "Requesting..." : "Enroll in Course"}
             </Button>
@@ -98,9 +122,9 @@ const WorkshopCard = ({ workshop, onEnroll, enrollmentStatus, onDelete }: Worksh
                         </AlertDialogTrigger>
                         <AlertDialogContent onClick={(e) => e.stopPropagation()} className="dark:border-white/10">
                             <AlertDialogHeader>
-                                <AlertDialogTitle className="text-foreground">{user?.role == 'USER' ? 'Unenroll' : 'Delete workshop'}</AlertDialogTitle>
+                                <AlertDialogTitle className="text-foreground">{user?.role == 'USER' ? 'Unenroll' : 'Delete course'}</AlertDialogTitle>
                                 <AlertDialogDescription className="text-muted-foreground">
-                                    {user?.role == 'USER' ? 'Are you sure you want to unenroll from this workshop?' :
+                                    {user?.role == 'USER' ? 'Are you sure you want to unenroll from this course?' :
                                         'Are you sure you want to delete ' + workshop.title + '? This action cannot be undone.'}
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
@@ -121,7 +145,7 @@ const WorkshopCard = ({ workshop, onEnroll, enrollmentStatus, onDelete }: Worksh
                 </div>
             )}
 
-            <Link to={`/workshops/${workshop.id}`} className="flex flex-col h-full">
+            <Link to={`/course/${workshop.id}`} className="flex flex-col h-full">
                 {/* Image Area */}
                 <div className="relative aspect-[16/9] overflow-hidden">
                     {workshop.imageUrl ? (
@@ -222,11 +246,11 @@ const WorkshopCard = ({ workshop, onEnroll, enrollmentStatus, onDelete }: Worksh
                                 onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    navigate(`/workshops/${workshop.id}/manage`);
+                                    navigate(`/course/${workshop.id}/manage`);
                                 }}
                             >
                                 <Settings className="w-4 h-4 mr-2" />
-                                Manage Workshop
+                                Manage Course
                             </Button>
                         )}
                     </div>

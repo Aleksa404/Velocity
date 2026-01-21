@@ -86,7 +86,7 @@ const TrainerProfilePage = () => {
 
     const handleEnroll = async (workshopId: string) => {
         if (!user) {
-            toast.error("Please log in to enroll in workshops");
+            toast.error("Please log in to enroll in courses");
             return;
         }
 
@@ -106,8 +106,7 @@ const TrainerProfilePage = () => {
                 });
             }
         } catch (error: any) {
-            console.error("Error enrolling in workshop:", error);
-            toast.error(error.response?.data?.message || "Failed to enroll in workshop");
+            toast.error(error.response?.data?.message || "Failed to enroll in course");
         }
     };
 
@@ -184,7 +183,7 @@ const TrainerProfilePage = () => {
                         <div className="flex flex-col items-center p-6 bg-muted/30 dark:bg-muted/10 rounded-2xl border border-border/50 group hover:border-indigo-500/30 transition-all duration-300">
                             <Calendar className="w-6 h-6 text-indigo-600 dark:text-indigo-400 mb-3 group-hover:scale-110 transition-transform" />
                             <span className="text-3xl font-bold text-foreground">{trainer._count?.workshops || 0}</span>
-                            <span className="text-muted-foreground text-xs font-bold uppercase tracking-widest mt-1">Workshops</span>
+                            <span className="text-muted-foreground text-xs font-bold uppercase tracking-widest mt-1">Courses</span>
                         </div>
                     </div>
                 </CardContent>
@@ -194,7 +193,7 @@ const TrainerProfilePage = () => {
             <div className="space-y-6">
                 <div className="flex items-center justify-between px-1">
                     <div className="space-y-1">
-                        <h2 className="text-2xl font-bold text-foreground tracking-tight">Workshops</h2>
+                        <h2 className="text-2xl font-bold text-foreground tracking-tight">Courses</h2>
                         <p className="text-muted-foreground font-medium">Courses and programs created by this trainer</p>
                     </div>
                 </div>
@@ -205,7 +204,7 @@ const TrainerProfilePage = () => {
                             <div className="text-center">
                                 <Calendar className="w-12 h-12 mx-auto text-muted-foreground opacity-20 mb-4" />
                                 <p className="text-muted-foreground font-bold italic">
-                                    No workshops available from this trainer yet.
+                                    No courses available from this trainer yet.
                                 </p>
                             </div>
                         </CardContent>

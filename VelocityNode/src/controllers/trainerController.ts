@@ -162,17 +162,21 @@ export const getTrainerProfile = async (
                 email: true,
                 role: true,
                 createdAt: true,
-                videos: {
-                    orderBy: { uploadedAt: "desc" },
-                    take: 10,
-                },
                 workshops: {
                     orderBy: { createdAt: "desc" },
                     include: {
+                        videos: {
+                            include: {
+                                watchProgress: currentUserId ? {
+                                    where: { userId: currentUserId }
+                                } : false
+                            }
+                        },
                         _count: {
                             select: {
                                 enrollments: true,
                                 videos: true,
+                                sections: true,
                             },
                         },
                     },
@@ -203,6 +207,23 @@ export const getTrainerProfile = async (
             });
         }
 
+        // Check enrollment status for each workshop if user is logged in
+        let workshopsWithStatus = trainer.workshops;
+        if (currentUserId) {
+            const userEnrollments = await prisma.workshopEnrollment.findMany({
+                where: {
+                    userId: currentUserId,
+                    workshopId: { in: trainer.workshops.map(w => w.id) }
+                }
+            });
+            const enrollmentMap = new Map(userEnrollments.map(e => [e.workshopId, e.status]));
+
+            workshopsWithStatus = trainer.workshops.map(workshop => ({
+                ...workshop,
+                enrollmentStatus: enrollmentMap.get(workshop.id) || null
+            }));
+        }
+
         // Check if current user is following this trainer
         let isFollowing = false;
         if (currentUserId) {
@@ -219,7 +240,7 @@ export const getTrainerProfile = async (
 
         res.status(200).json({
             success: true,
-            data: { ...trainer, isFollowing },
+            data: { ...trainer, workshops: workshopsWithStatus, isFollowing },
             message: "Trainer profile fetched successfully",
         });
     } catch (error: any) {

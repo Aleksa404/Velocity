@@ -25,7 +25,7 @@ const CreateWorkshopPage = () => {
 
     // Check if user is a trainer
     if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN")) {
-        return <Navigate to="/workshops" />;
+        return <Navigate to="/course/all" />;
     }
 
     const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,16 +77,14 @@ const CreateWorkshopPage = () => {
                 try {
                     await uploadWorkshopImage(response.data.id, selectedImage);
                 } catch (imageError) {
-                    console.error("Error uploading image:", imageError);
-                    toast.warning("Workshop created but image upload failed");
+                    toast.warning("Course created but image upload failed");
                 }
             }
 
-            toast.success("Workshop created successfully!");
-            navigate(`/workshops/${response.data.id}`);
+            toast.success("Course created successfully!");
+            navigate(`/course/${response.data.id}`);
         } catch (error: any) {
-            console.error("Error creating workshop:", error);
-            toast.error(error.response?.data?.message || "Failed to create workshop");
+            toast.error(error.response?.data?.message || "Failed to create course");
         } finally {
             setIsSubmitting(false);
         }
@@ -102,17 +100,17 @@ const CreateWorkshopPage = () => {
     return (
         <div className="container mx-auto p-6 max-w-3xl space-y-6">
             <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-bold tracking-tight text-foreground">Create Workshop</h1>
+                <h1 className="text-3xl font-bold tracking-tight text-foreground">Create Course</h1>
                 <p className="text-muted-foreground">
-                    Create a new workshop for your followers to enroll in and access your content.
+                    Create a new course for your followers to enroll in and access your content.
                 </p>
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Workshop Details</CardTitle>
+                    <CardTitle>Course Details</CardTitle>
                     <CardDescription>
-                        Provide information about your workshop. Students can request to enroll and you can approve them.
+                        Provide information about your course. Students can request to enroll and you can approve them.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -134,7 +132,7 @@ const CreateWorkshopPage = () => {
                             <Textarea
                                 id="description"
                                 name="description"
-                                placeholder="Describe what students will learn in this workshop..."
+                                placeholder="Describe what students will learn in this course..."
                                 value={formData.description}
                                 onChange={handleChange}
                                 rows={5}
@@ -196,13 +194,13 @@ const CreateWorkshopPage = () => {
                                         Creating...
                                     </>
                                 ) : (
-                                    "Create Workshop"
+                                    "Create Course"
                                 )}
                             </Button>
                             <Button
                                 type="button"
                                 variant="outline"
-                                onClick={() => navigate("/workshops")}
+                                onClick={() => navigate("/")}
                                 disabled={isSubmitting}
                             >
                                 Cancel

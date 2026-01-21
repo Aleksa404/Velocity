@@ -1,17 +1,17 @@
 
 // Video Utility Functions
 
-/**
- * Detects if a URL is a YouTube URL
- */
+
+// Detects if a URL is a YouTube URL
+
 export function isYouTubeUrl(url: string | undefined | null): boolean {
     if (!url) return false;
     return url.includes("youtube.com") || url.includes("youtu.be");
 }
 
-/**
- * Extracts YouTube video ID from URL
- */
+
+// Extracts YouTube video ID from URL
+
 export function getYouTubeId(url: string | undefined | null): string | null {
     if (!url) return null;
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -19,18 +19,18 @@ export function getYouTubeId(url: string | undefined | null): string | null {
     return match && match[2].length === 11 ? match[2] : null;
 }
 
-/**
- * Get YouTube thumbnail URL
- */
+
+// Get YouTube thumbnail URL
+
 export function getYouTubeThumbnail(url: string | undefined | null): string | null {
     const id = getYouTubeId(url);
     if (!id) return null;
     return `https://img.youtube.com/vi/${id}/maxresdefault.jpg`;
 }
 
-/**
- * Construct full URL for local video streaming or return YouTube URL as is
- */
+
+// Construct full URL for local video streaming or return YouTube URL as is
+
 export function getFullVideoUrl(url: string): string {
     if (isYouTubeUrl(url)) return url;
 
@@ -50,9 +50,9 @@ export function getFullVideoUrl(url: string): string {
     return `${baseUrl}${cleanUrl}`;
 }
 
-/**
- * Format duration in seconds to MM:SS or HH:MM:SS
- */
+
+// Format duration in seconds to MM:SS or HH:MM:SS
+
 export function formatDuration(seconds: number | undefined): string {
     if (!seconds) return "00:00";
 

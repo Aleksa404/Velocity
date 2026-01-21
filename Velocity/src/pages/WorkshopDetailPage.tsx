@@ -61,8 +61,7 @@ const WorkshopDetailPage = () => {
             const response = await getWorkshopById(id!);
             setWorkshop(response.data);
         } catch (error) {
-            console.error("Error fetching workshop:", error);
-            toast.error("Failed to load workshop");
+            toast.error("Failed to load course");
         } finally {
             setIsLoading(false);
         }
@@ -70,7 +69,7 @@ const WorkshopDetailPage = () => {
 
     const handleEnroll = async () => {
         if (!user) {
-            toast.error("Please log in to enroll in workshops");
+            toast.error("Please log in to enroll in courses");
             return;
         }
 
@@ -87,7 +86,7 @@ const WorkshopDetailPage = () => {
                 });
             }
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "Failed to enroll in workshop");
+            toast.error(error.response?.data?.message || "Failed to enroll in course");
         }
     };
 
@@ -179,7 +178,7 @@ const WorkshopDetailPage = () => {
     }
 
     if (!workshop) {
-        return <Navigate to="/workshops" />;
+        return <Navigate to="/course/all" />;
     }
 
     const isOwner = user && user.id === workshop.trainerId;
@@ -223,7 +222,7 @@ const WorkshopDetailPage = () => {
             return (
                 <div className="flex items-center gap-2 bg-amber-500/10 dark:bg-yellow-500/20 text-amber-700 dark:text-yellow-100 px-4 py-2 rounded-full backdrop-blur-sm border border-amber-500/20 dark:border-yellow-500/30 shadow-sm">
                     <Clock className="w-4 h-4" />
-                    <span className="font-bold text-sm">Pending Approval</span>
+                    <span className="font-bold text-sm">Poslat zahtev</span>
                 </div>
             );
         }
@@ -247,7 +246,7 @@ const WorkshopDetailPage = () => {
                 className="bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-white dark:text-indigo-600 dark:hover:bg-gray-100 font-bold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 border border-indigo-500/20 dark:border-transparent"
                 size="lg"
             >
-                {isEnrolling ? "Requesting..." : "Start Learning Now"}
+                {isEnrolling ? "Requesting..." : "Prijavite se"}
             </Button>
         );
     };
@@ -347,10 +346,10 @@ const WorkshopDetailPage = () => {
             <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-white/20 dark:border-white/5 shadow-sm supports-[backdrop-filter]:bg-background/60">
                 <div className="container mx-auto px-4 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <Link to="/workshops">
+                        <Link to="/course/all">
                             <Button variant="ghost" size="sm" className="hidden md:flex text-muted-foreground hover:text-indigo-600 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 transition-all rounded-full px-4">
                                 <ChevronRight className="w-4 h-4 rotate-180 mr-1" />
-                                Back
+
                             </Button>
                         </Link>
                         <div className="h-6 w-px bg-border hidden md:block" />
@@ -414,9 +413,9 @@ const WorkshopDetailPage = () => {
                                             <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-white/20 to-white/5 rounded-3xl flex items-center justify-center mx-auto mb-6 md:mb-8 shadow-inner border border-white/10">
                                                 <Lock className="w-8 h-8 md:w-10 md:h-10 text-white drop-shadow-md" />
                                             </div>
-                                            <h3 className="text-2xl md:text-3xl font-bold text-white mb-3 md:mb-4 tracking-tight">Content Locked</h3>
+                                            <h3 className="text-2xl md:text-3xl font-bold text-white mb-3 md:mb-4 tracking-tight">Zakljucan sadrzaj</h3>
                                             <p className="text-indigo-100/80 mb-8 md:mb-10 text-base md:text-lg leading-relaxed">
-                                                Enroll in {workshop.title} to unlock this lesson and the full curriculum.
+                                                Prijavite se za {workshop.title} da bi ste otkljucali sve lekcije i sadrzaj.
                                             </p>
                                             <div className="flex justify-center scale-110">
                                                 {getEnrollmentButton()}
@@ -435,7 +434,7 @@ const WorkshopDetailPage = () => {
                                                 </h2>
                                                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                                                     <span className="font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-md border border-indigo-100/50 dark:border-indigo-400/20">
-                                                        Lesson {allVideos.findIndex(v => v.id === selectedVideoId)! + 1}
+                                                        Lekcija {allVideos.findIndex(v => v.id === selectedVideoId)! + 1}
                                                     </span>
                                                     <span>•</span>
                                                     <span className="flex items-center gap-1.5">
@@ -447,7 +446,7 @@ const WorkshopDetailPage = () => {
                                                             <span>•</span>
                                                             <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-bold">
                                                                 <Lock className="w-3.5 h-3.5" />
-                                                                Locked
+                                                                Zakljucano
                                                             </span>
                                                         </>
                                                     )}
@@ -467,7 +466,7 @@ const WorkshopDetailPage = () => {
                                                     }}
                                                 >
                                                     <ChevronRight className="w-4 h-4 rotate-180 mr-1.5" />
-                                                    Previous
+                                                    Prethodna Lekcija
                                                 </Button>
                                                 <Button
                                                     variant="default"
@@ -481,7 +480,7 @@ const WorkshopDetailPage = () => {
                                                         }
                                                     }}
                                                 >
-                                                    Next Lesson
+                                                    Sledeca Lekcija
                                                     <ChevronRight className="w-4 h-4 ml-1.5" />
                                                 </Button>
                                             </div>
@@ -496,7 +495,7 @@ const WorkshopDetailPage = () => {
                                         ) : (
                                             <div className="bg-muted/10 p-6 rounded-2xl border border-dashed border-border flex items-center gap-4 text-muted-foreground italic">
                                                 <Lock className="w-5 h-5 opacity-40" />
-                                                <p>Enroll in this workshop to view the full lesson description and resources.</p>
+                                                <p>Prijavite se za ovaj kurs da biste videli kompletan sadrzaj i lekcije.</p>
                                             </div>
                                         )}
                                     </div>
@@ -509,7 +508,7 @@ const WorkshopDetailPage = () => {
                                     <div className="bg-card p-4 rounded-full shadow-sm inline-flex mb-4 border border-border">
                                         <VideoIcon className="w-8 h-8 opacity-50" />
                                     </div>
-                                    <p className="text-lg font-medium">Select a lesson to start watching</p>
+                                    <p className="text-lg font-medium">Izaberite lekciju da biste poceli da gledate</p>
                                 </div>
                             </div>
                         )}
@@ -523,7 +522,7 @@ const WorkshopDetailPage = () => {
                                 <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
                                     <Users className="w-5 h-5" />
                                 </div>
-                                About this Workshop
+                                Detalji o kursu
                             </h3>
                             <div className="flex items-center gap-4 mb-4">
                                 <Link
@@ -538,7 +537,7 @@ const WorkshopDetailPage = () => {
                                             {workshop.trainer?.first_name} {workshop.trainer?.last_name}
                                         </p>
                                         <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                            Instructor
+                                            Instruktor
                                             <Badge variant="secondary" className="text-[8px] bg-muted text-muted-foreground px-1 h-3 flex items-center">Verified</Badge>
                                         </p>
                                     </div>
@@ -550,9 +549,9 @@ const WorkshopDetailPage = () => {
                         </div>
                         <div className="bg-card rounded-2xl border border-border shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none overflow-hidden flex flex-col max-h-[calc(100vh-140px)] sticky top-24 ring-1 ring-black/5 dark:ring-white/5">
                             <div className="p-5 border-b border-border bg-muted/30 flex items-center justify-between backdrop-blur-sm">
-                                <h3 className="font-bold text-foreground text-lg">Course Content</h3>
+                                <h3 className="font-bold text-foreground text-lg">Sadržaj Kursa</h3>
                                 <Badge variant="secondary" className="bg-card border-border text-muted-foreground shadow-sm">
-                                    {totalVideosCount} Lessons
+                                    {totalVideosCount} Lekcije
                                 </Badge>
                             </div>
 
@@ -575,7 +574,7 @@ const WorkshopDetailPage = () => {
                                                         <div className="flex-1">
                                                             <span className="font-bold text-foreground text-sm">{section.title}</span>
                                                             <p className="text-xs text-muted-foreground font-medium mt-0.5">
-                                                                {section.videos?.length || 0} lectures
+                                                                {section.videos?.length || 0} lekcija
                                                             </p>
                                                         </div>
                                                     </div>
@@ -586,7 +585,7 @@ const WorkshopDetailPage = () => {
                                                             section.videos.map((video) => renderVideoItem(video))
                                                         ) : (
                                                             <div className="p-8 text-center bg-muted/10">
-                                                                <p className="text-sm text-muted-foreground italic">No lessons in this section</p>
+                                                                <p className="text-sm text-muted-foreground italic">Nema lekcija u ovoj sekciji</p>
                                                             </div>
                                                         )}
                                                     </div>
@@ -601,7 +600,7 @@ const WorkshopDetailPage = () => {
                                         <div className="w-16 h-16 bg-muted/20 rounded-full flex items-center justify-center mb-4">
                                             <BookOpen className="w-8 h-8 opacity-20" />
                                         </div>
-                                        <p className="text-sm font-medium">No curriculum available yet.</p>
+                                        <p className="text-sm font-medium">Jos uvek nema dostupnog materijala</p>
                                     </div>
                                 )}
                             </div>
@@ -610,7 +609,7 @@ const WorkshopDetailPage = () => {
                         {/* Mobile Progress (shown only on mobile below content) */}
                         <div className="bg-card p-5 rounded-2xl border border-border shadow-sm md:hidden">
                             <div className="flex justify-between items-end mb-3">
-                                <span className="text-sm font-bold text-foreground">Your Progress</span>
+                                <span className="text-sm font-bold text-foreground">Progres</span>
                                 <span className="text-sm font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-md">{overallProgress}%</span>
                             </div>
                             <div className="h-2.5 bg-muted rounded-full overflow-hidden">

@@ -263,7 +263,7 @@ const ProfilePage = () => {
                                 <p className="text-sm text-muted-foreground font-medium">
                                     {user.role === "ADMIN"
                                         ? "You have full administrative control over the platform."
-                                        : "Your profile is verified. You can now create workshops and manage students."}
+                                        : "Your profile is verified. You can now create courses and manage students."}
                                 </p>
                             </div>
                         </div>

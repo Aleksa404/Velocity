@@ -70,8 +70,7 @@ const WorkshopManagementPage = () => {
             setWorkshop(workshopRes.data);
             setEnrollments(enrollmentsRes.data);
         } catch (error) {
-            console.error("Error fetching data:", error);
-            toast.error("Failed to load workshop data");
+            toast.error("Failed to load course data");
         } finally {
             setIsLoading(false);
         }
@@ -259,7 +258,7 @@ const WorkshopManagementPage = () => {
     }
 
     if (!workshop) {
-        return <div className="p-8 text-center">Workshop not found</div>;
+        return <div className="p-8 text-center">Course not found</div>;
     }
 
     const allWorkshopVideos = [
@@ -269,9 +268,9 @@ const WorkshopManagementPage = () => {
 
     return (
         <div className="container mx-auto p-6 max-w-5xl space-y-6">
-            <Button variant="ghost" onClick={() => navigate(`/workshops/${id}`)} className="pl-0 text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" onClick={() => navigate(`/course/${id}`)} className="pl-0 text-muted-foreground hover:text-foreground">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Workshop
+                Back to Courses
             </Button>
 
             <div className="flex justify-between items-start">
@@ -294,10 +293,10 @@ const WorkshopManagementPage = () => {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-foreground font-bold">
                                 <Settings className="w-5 h-5 text-indigo-500" />
-                                Workshop Settings
+                                Course Settings
                             </CardTitle>
                             <CardDescription className="text-muted-foreground font-medium">
-                                Customize your workshop appearance.
+                                Customize your course appearance.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
@@ -369,7 +368,7 @@ const WorkshopManagementPage = () => {
                                 Enrollment Requests
                             </CardTitle>
                             <CardDescription className="text-muted-foreground font-medium">
-                                Manage user enrollments for this workshop.
+                                Manage user enrollments for this Course.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -442,7 +441,7 @@ const WorkshopManagementPage = () => {
                         <Card className="bg-card border-border shadow-sm dark:shadow-none">
                             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                 <div>
-                                    <CardTitle className="text-foreground font-bold">Workshop Sections</CardTitle>
+                                    <CardTitle className="text-foreground font-bold">Course Sections</CardTitle>
                                     <CardDescription className="text-muted-foreground font-medium">Organize your videos into groups.</CardDescription>
                                 </div>
                                 <Button
@@ -573,7 +572,7 @@ const WorkshopManagementPage = () => {
                                                                 </Button>
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end" className="w-56 dark:border-white/10 dark:bg-card rounded-xl shadow-xl">
-                                                                <DropdownMenuLabel className="font-bold text-xs uppercase tracking-widest text-muted-foreground">Workshop Sections</DropdownMenuLabel>
+                                                                <DropdownMenuLabel className="font-bold text-xs uppercase tracking-widest text-muted-foreground">Course Sections</DropdownMenuLabel>
                                                                 <DropdownMenuSeparator className="dark:bg-white/5" />
                                                                 <DropdownMenuItem onClick={() => handleMoveVideo(video.id, null)} className={cn("rounded-lg m-1 font-medium", !video.sectionId ? "bg-indigo-600 text-white" : "hover:bg-muted")}>
                                                                     None (Main list)
@@ -628,7 +627,7 @@ const WorkshopManagementPage = () => {
                     <DialogHeader>
                         <DialogTitle className="text-foreground font-bold">{sectionDialog.section ? "Edit Section" : "Add New Section"}</DialogTitle>
                         <DialogDescription className="text-muted-foreground font-medium">
-                            Enter a title for your workshop section.
+                            Enter a title for your Course section.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">

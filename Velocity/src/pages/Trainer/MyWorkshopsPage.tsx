@@ -27,8 +27,7 @@ const MyWorkshopsPage = () => {
             const response = await getMyWorkshops();
             setWorkshops(response.data);
         } catch (error) {
-            console.error("Error fetching workshops:", error);
-            toast.error("Failed to load your workshops");
+            toast.error("Failed to load your courses");
         } finally {
             setIsLoading(false);
         }
@@ -38,15 +37,14 @@ const MyWorkshopsPage = () => {
         try {
             await deleteWorkshop(workshopId);
             setWorkshops((prev) => prev.filter((w) => w.id !== workshopId));
-            toast.success("Workshop deleted successfully");
+            toast.success("Course deleted successfully");
         } catch (error) {
-            console.error("Error deleting workshop:", error);
-            toast.error("Failed to delete workshop");
+            toast.error("Failed to delete course");
         }
     };
 
     if (!isTrainer) {
-        return <Navigate to="/workshops/enrolled" replace />;
+        return <Navigate to="/course/enrolled" replace />;
     }
 
     if (isLoading) {
@@ -54,7 +52,7 @@ const MyWorkshopsPage = () => {
             <div className="container mx-auto p-6 max-w-7xl">
                 <div className="flex items-center justify-center h-64">
                     <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-                    <p className="ml-3 text-muted-foreground">Loading your workshops...</p>
+                    <p className="ml-3 text-muted-foreground">Loading your courses...</p>
                 </div>
             </div>
         );
@@ -70,16 +68,16 @@ const MyWorkshopsPage = () => {
                                 <ArrowLeft className="w-5 h-5" />
                             </Button>
                         </Link>
-                        <h1 className="text-3xl font-bold tracking-tight text-foreground">Managed Workshops</h1>
+                        <h1 className="text-3xl font-bold tracking-tight text-foreground">Managed Courses</h1>
                     </div>
                     <p className="text-muted-foreground ml-12">
-                        Create and manage your workshop content, sections, and student progress.
+                        Create and manage your course content, sections, and student progress.
                     </p>
                 </div>
-                <Link to="/workshops/create">
+                <Link to="/course/create">
                     <Button className="bg-indigo-600 hover:bg-indigo-700">
                         <Plus className="w-4 h-4 mr-2" />
-                        Create Workshop
+                        Create Course
                     </Button>
                 </Link>
             </div>
@@ -89,12 +87,12 @@ const MyWorkshopsPage = () => {
                     <div className="bg-indigo-50/10 p-4 rounded-full mb-4">
                         <Plus className="w-8 h-8 text-indigo-600" />
                     </div>
-                    <h3 className="text-xl font-semibold text-foreground">No workshops created</h3>
+                    <h3 className="text-xl font-semibold text-foreground">No courses created</h3>
                     <p className="text-muted-foreground mt-2 max-w-sm">
-                        You haven't created any workshops yet. Start sharing your knowledge with the world.
+                        You haven't created any courses yet. Start sharing your knowledge with the world.
                     </p>
-                    <Link to="/workshops/create" className="mt-6">
-                        <Button className="bg-indigo-600 hover:bg-indigo-700">Create Your First Workshop</Button>
+                    <Link to="/course/create" className="mt-6">
+                        <Button className="bg-indigo-600 hover:bg-indigo-700">Create Your First Course</Button>
                     </Link>
                 </div>
             ) : (

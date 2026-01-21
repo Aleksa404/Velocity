@@ -96,20 +96,20 @@ const UserDashboard = () => {
         <div className="container mx-auto p-6 space-y-8">
             <div className="flex flex-col gap-2">
                 <h1 className="text-3xl font-bold tracking-tight text-foreground">My Dashboard</h1>
-                <p className="text-muted-foreground font-medium">Manage your workshops and followed trainers.</p>
+                <p className="text-muted-foreground font-medium">Manage your courses and followed trainers.</p>
             </div>
 
-            <Tabs defaultValue="workshops" className="space-y-6">
+            <Tabs defaultValue="courses" className="space-y-6">
                 <TabsList className="bg-muted/50 p-1 dark:border dark:border-white/5 shadow-inner">
-                    <TabsTrigger value="workshops" className="data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all rounded-md">
-                        My Workshops
+                    <TabsTrigger value="courses" className="data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all rounded-md">
+                        My Courses
                     </TabsTrigger>
                     <TabsTrigger value="following" className="data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all rounded-md">
                         Following
                     </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="workshops" className="space-y-6 outline-none">
+                <TabsContent value="courses" className="space-y-6 outline-none">
                     {enrollments.length === 0 ? (
                         <Card className="bg-muted/20 border-dashed border-2 border-border/50">
                             <CardContent className="flex flex-col items-center justify-center h-80 space-y-6">
@@ -117,11 +117,11 @@ const UserDashboard = () => {
                                     <Loader2 className="w-8 h-8 text-muted-foreground opacity-20" />
                                 </div>
                                 <div className="text-center space-y-2">
-                                    <p className="text-foreground text-xl font-bold">No workshops yet</p>
-                                    <p className="text-muted-foreground font-medium">You haven't enrolled in any workshops yet.</p>
+                                    <p className="text-foreground text-xl font-bold">No courses yet</p>
+                                    <p className="text-muted-foreground font-medium">You haven't enrolled in any courses yet.</p>
                                 </div>
-                                <Button onClick={() => navigate("/workshops")} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-8 h-12 font-bold shadow-lg shadow-indigo-500/20">
-                                    Browse Workshops
+                                <Button onClick={() => navigate("/course/all")} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-8 h-12 font-bold shadow-lg shadow-indigo-500/20">
+                                    Browse Courses
                                 </Button>
                             </CardContent>
                         </Card>

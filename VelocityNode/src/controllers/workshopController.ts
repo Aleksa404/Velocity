@@ -11,7 +11,9 @@ export const createWorkshop = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
-        const { id: trainerId, role } = req.user!;
+        const user = req.user;
+        if (!user) { return res.status(401).json({ success: false, data: null, message: "Unauthorized" }) }
+        const { id: trainerId, role } = user;
         const { title, description } = req.body;
 
         if (role !== "TRAINER" && role !== "ADMIN") {
@@ -132,6 +134,10 @@ export const getAllWorkshops = async (
                             role: true,
                         },
                     },
+                    enrollments: {
+                        where: { userId: currentUserId },
+                        select: { status: true }
+                    },
                     videos: {
                         include: {
                             watchProgress: {
@@ -161,24 +167,11 @@ export const getAllWorkshops = async (
         const totalPages = Math.ceil(total / limit);
 
         // check enrollment status for each workshop
+        const workshopsWithStatus = workshops.map(w => ({
+            ...w,
+            enrollmentStatus: w.enrollments[0]?.status || null,
+        }));
 
-        const workshopsWithStatus = await Promise.all(
-            workshops.map(async (workshop) => {
-                const enrollment = await prisma.workshopEnrollment.findUnique({
-                    where: {
-                        userId_workshopId: {
-                            userId: currentUserId,
-                            workshopId: workshop.id,
-                        },
-                    },
-                });
-
-                return {
-                    ...workshop,
-                    enrollmentStatus: enrollment?.status || null,
-                };
-            })
-        );
 
         return res.status(200).json({
             success: true,
@@ -222,6 +215,12 @@ export const getWorkshopById = async (
                         email: true,
                     },
                 },
+                enrollments: currentUserId
+                    ? {
+                        where: { userId: currentUserId },
+                        select: { status: true }
+                    }
+                    : false,
                 sections: {
                     orderBy: { order: "asc" },
                     include: {
@@ -292,26 +291,8 @@ export const getWorkshopById = async (
         }
 
         // Check enrollment status if user is logged in
-        let enrollmentStatus = null;
-        if (currentUserId) {
-            const enrollment = await prisma.workshopEnrollment.findUnique({
-                where: {
-                    userId_workshopId: {
-                        userId: currentUserId,
-                        workshopId: id,
-                    },
-                },
-            });
-            enrollmentStatus = enrollment?.status || null;
-        }
-
-        const isTrainer = workshop.trainerId === currentUserId;
-        const isEnrolled = enrollmentStatus === "APPROVED";
-
-        // Remove videos if not trainer and not enrolled/approved
-        // if (!isTrainer && !isEnrolled) {
-        //     (workshop as any).videos = [];
-        // }
+        const enrollmentStatus =
+            workshop.enrollments?.[0]?.status || null;
 
         res.status(200).json({
             success: true,

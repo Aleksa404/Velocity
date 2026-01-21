@@ -41,8 +41,7 @@ const WorkshopsPage = () => {
                 setTotalPages(response.pagination.totalPages);
             }
         } catch (error) {
-            console.error("Error fetching workshops:", error);
-            toast.error("Failed to load workshops");
+            toast.error("Failed to load courses");
         } finally {
             setIsLoading(false);
         }
@@ -50,7 +49,7 @@ const WorkshopsPage = () => {
 
     const handleEnroll = async (workshopId: string) => {
         if (!user) {
-            toast.error("Please log in to enroll in workshops");
+            toast.error("Please log in to enroll in courses");
             return;
         }
 
@@ -73,8 +72,7 @@ const WorkshopsPage = () => {
                 return workshop;
             }));
         } catch (error: any) {
-            console.error("Error enrolling in workshop:", error);
-            toast.error(error.response?.data?.message || "Failed to enroll in workshop");
+            toast.error(error.response?.data?.message || "Failed to enroll in course");
         }
     };
 
@@ -82,16 +80,16 @@ const WorkshopsPage = () => {
         <div className="container mx-auto p-6 max-w-7xl space-y-6">
             <div className="flex items-center justify-between">
                 <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground">Workshops</h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">Courses</h1>
                     <p className="text-muted-foreground font-medium">
-                        Browse and enroll in workshops led by professional trainers.
+                        Browse and enroll in courses led by professional trainers.
                     </p>
                 </div>
                 {user && (user.role === "TRAINER" || user.role === "ADMIN") && (
-                    <Link to="/workshops/create">
+                    <Link to="/course/create">
                         <Button className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-6 h-11 font-semibold shadow-lg shadow-indigo-500/20">
                             <Plus className="w-4 h-4 mr-2" />
-                            Create Workshop
+                            Create Course
                         </Button>
                     </Link>
                 )}
@@ -102,7 +100,7 @@ const WorkshopsPage = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
                     type="text"
-                    placeholder="Search workshops..."
+                    placeholder="Search courses..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10 bg-muted/50 border-border focus:bg-background transition-all h-11 rounded-xl dark:placeholder:text-muted-foreground/50"
@@ -116,14 +114,14 @@ const WorkshopsPage = () => {
 
             {isLoading && !searchQuery ? (
                 <div className="flex items-center justify-center h-64">
-                    <p className="text-muted-foreground">Loading workshops...</p>
+                    <p className="text-muted-foreground">Loading courses...</p>
                 </div>
             ) : workshops.length === 0 ? (
                 <div className="text-center py-12">
                     <p className="text-muted-foreground">
                         {debouncedSearch
-                            ? `No workshops found matching "${debouncedSearch}"`
-                            : "No workshops found."}
+                            ? `No courses found matching "${debouncedSearch}"`
+                            : "No courses found."}
                     </p>
                 </div>
             ) : (

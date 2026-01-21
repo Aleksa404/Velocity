@@ -60,11 +60,11 @@ const EnrolledWorkshopsPage = () => {
                         </Button>
                     </Link>
                     <h1 className="text-3xl font-bold tracking-tight text-foreground">
-                        My Enrolled Workshops
+                        My Enrolled Courses
                     </h1>
                 </div>
                 <p className="text-muted-foreground ml-12">
-                    Access and track your progress in the workshops you've joined.
+                    Access and track your progress in the courses you've joined.
                 </p>
             </div>
 
@@ -75,11 +75,11 @@ const EnrolledWorkshopsPage = () => {
                     </div>
                     <h3 className="text-xl font-semibold text-foreground">No enrollments yet</h3>
                     <p className="text-muted-foreground mt-2 max-w-sm">
-                        You haven't enrolled in any workshops. Browse our selection to find the right training for you.
+                        You haven't enrolled in any courses. Browse our selection to find the right training for you.
                     </p>
-                    <Link to="/workshops" className="mt-6">
+                    <Link to="/course/all" className="mt-6">
                         <Button className="bg-indigo-600 hover:bg-indigo-700">
-                            Browse Workshops
+                            Browse Courses
                         </Button>
                     </Link>
                 </div>
