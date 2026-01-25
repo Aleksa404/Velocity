@@ -58,8 +58,10 @@ const WorkshopDetailPage = () => {
 
     const fetchWorkshop = async () => {
         try {
-            const response = await getWorkshopById(id!);
-            setWorkshop(response.data);
+            if (id) {
+                const response = await getWorkshopById(id);
+                setWorkshop(response.data);
+            }
         } catch (error) {
             toast.error("Failed to load course");
         } finally {

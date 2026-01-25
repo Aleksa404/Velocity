@@ -20,13 +20,13 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import TrainerCard from "../Trainer/TrainerCard";
 
 const UserDashboard = () => {
     const navigate = useNavigate();
     const [enrollments, setEnrollments] = useState<WorkshopEnrollment[]>([]);
     const [following, setFollowing] = useState<Follow[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [processingId, setProcessingId] = useState<string | null>(null);
     const [unfollowDialog, setUnfollowDialog] = useState<{ open: boolean; trainerId: string | null }>({
         open: false,
         trainerId: null
@@ -55,21 +55,17 @@ const UserDashboard = () => {
 
     const handleUnenroll = async (workshopId: string) => {
         try {
-            setProcessingId(workshopId);
             await unenrollFromWorkshop(workshopId);
             toast.success("Unenrolled successfully");
             setEnrollments(enrollments.filter(e => e.workshopId !== workshopId));
         } catch (error) {
             console.error("Error unenrolling:", error);
             toast.error("Failed to unenroll");
-        } finally {
-            setProcessingId(null);
         }
     };
 
     const handleUnfollow = async (trainerId: string) => {
         try {
-            setProcessingId(trainerId);
             await unfollowTrainer(trainerId);
             toast.success("Unfollowed successfully");
             setFollowing(following.filter(f => f.trainerId !== trainerId));
@@ -77,8 +73,6 @@ const UserDashboard = () => {
         } catch (error) {
             console.error("Error unfollowing:", error);
             toast.error("Failed to unfollow");
-        } finally {
-            setProcessingId(null);
         }
     };
 
@@ -160,31 +154,32 @@ const UserDashboard = () => {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {following.map((follow) => (
-                                <Card key={follow.id} className="bg-card border-border hover:shadow-lg dark:hover:ring-1 dark:hover:ring-white/10 transition-all duration-300 overflow-hidden">
-                                    <CardHeader className="pb-4">
-                                        <CardTitle className="text-foreground font-bold">{follow.trainer?.first_name} {follow.trainer?.last_name}</CardTitle>
-                                        <CardDescription className="text-muted-foreground font-medium">{follow.trainer?.email}</CardDescription>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="flex gap-2.5 pt-2 border-t border-border/50">
-                                            <Button
-                                                variant="secondary"
-                                                className="flex-1 bg-muted/50 hover:bg-muted text-foreground font-bold rounded-xl h-10 border border-border/50"
-                                                onClick={() => navigate(`/trainers/${follow.trainerId}`)}
-                                            >
-                                                View Profile
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                className="hover:bg-rose-500/10 hover:text-rose-600 hover:border-rose-500/20 font-bold rounded-xl h-10 border-border text-muted-foreground transition-all"
-                                                onClick={() => setUnfollowDialog({ open: true, trainerId: follow.trainerId })}
-                                                disabled={processingId === follow.trainerId}
-                                            >
-                                                {processingId === follow.trainerId ? "..." : "Unfollow"}
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                                <TrainerCard key={follow.id} trainer={follow.trainer!} isFollowing={true} onFollowToggle={() => setUnfollowDialog({ open: true, trainerId: follow.trainerId })} />
+                                // <Card key={follow.id} className="bg-card border-border hover:shadow-lg dark:hover:ring-1 dark:hover:ring-white/10 transition-all duration-300 overflow-hidden">
+                                //     <CardHeader className="pb-4">
+                                //         <CardTitle className="text-foreground font-bold">{follow.trainer?.first_name} {follow.trainer?.last_name}</CardTitle>
+                                //         <CardDescription className="text-muted-foreground font-medium">{follow.trainer?.email}</CardDescription>
+                                //     </CardHeader>
+                                //     <CardContent>
+                                //         <div className="flex gap-2.5 pt-2 border-t border-border/50">
+                                //             <Button
+                                //                 variant="secondary"
+                                //                 className="flex-1 bg-muted/50 hover:bg-muted text-foreground font-bold rounded-xl h-10 border border-border/50"
+                                //                 onClick={() => navigate(`/trainers/${follow.trainerId}`)}
+                                //             >
+                                //                 View Profile
+                                //             </Button>
+                                //             <Button
+                                //                 variant="outline"
+                                //                 className="hover:bg-rose-500/10 hover:text-rose-600 hover:border-rose-500/20 font-bold rounded-xl h-10 border-border text-muted-foreground transition-all"
+                                //                 onClick={() => setUnfollowDialog({ open: true, trainerId: follow.trainerId })}
+                                //                 disabled={processingId === follow.trainerId}
+                                //             >
+                                //                 {processingId === follow.trainerId ? "..." : "Unfollow"}
+                                //             </Button>
+                                //         </div>
+                                //     </CardContent>
+                                // </Card>
                             ))}
                         </div>
                     )}

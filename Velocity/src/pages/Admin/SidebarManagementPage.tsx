@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Search } from "lucide-react";
 import { ICON_LIST, ICON_MAP, type IconName } from "@/lib/icons";
 
@@ -60,6 +61,42 @@ const IconPicker = ({ value, onChange }: { value: string, onChange: (val: string
     );
 };
 
+const AVAILABLE_ROLES = ["USER", "TRAINER", "ADMIN"] as const;
+type Role = typeof AVAILABLE_ROLES[number];
+
+const RolePicker = ({ value, onChange }: { value: string[], onChange: (val: string[]) => void }) => {
+    const toggleRole = (role: Role) => {
+        if (value.includes(role)) {
+            onChange(value.filter(r => r !== role));
+        } else {
+            onChange([...value, role]);
+        }
+    };
+
+    return (
+        <div className="flex flex-wrap gap-3">
+            {AVAILABLE_ROLES.map((role) => (
+                <label
+                    key={role}
+                    className={cn(
+                        "flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all",
+                        value.includes(role)
+                            ? "bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-400"
+                            : "bg-muted/30 border-border hover:border-indigo-400/50 text-muted-foreground"
+                    )}
+                >
+                    <Checkbox
+                        checked={value.includes(role)}
+                        onCheckedChange={() => toggleRole(role)}
+                        className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
+                    />
+                    <span className="text-sm font-medium">{role}</span>
+                </label>
+            ))}
+        </div>
+    );
+};
+
 export const SidebarManagementPage = () => {
     const {
         sections,
@@ -81,7 +118,7 @@ export const SidebarManagementPage = () => {
         title: "",
         icon: "",
         path: "",
-        roles: "USER,TRAINER,ADMIN"
+        roles: ["USER", "TRAINER", "ADMIN"] as string[]
     });
 
     // State for Item Dialog
@@ -91,7 +128,7 @@ export const SidebarManagementPage = () => {
         label: "",
         icon: "",
         path: "",
-        roles: "USER,TRAINER,ADMIN",
+        roles: ["USER", "TRAINER", "ADMIN"] as string[],
         sectionId: ""
     });
 
@@ -107,7 +144,7 @@ export const SidebarManagementPage = () => {
                 title: section.title,
                 icon: section.icon || "",
                 path: section.path || "",
-                roles: section.roles ? section.roles.join(",") : "USER,TRAINER,ADMIN"
+                roles: section.roles?.length ? section.roles : ["USER", "TRAINER", "ADMIN"]
             });
         } else {
             setEditingSection(null);
@@ -115,19 +152,18 @@ export const SidebarManagementPage = () => {
                 title: "",
                 icon: "",
                 path: "",
-                roles: "USER,TRAINER,ADMIN"
+                roles: ["USER", "TRAINER", "ADMIN"]
             });
         }
         setIsSectionDialogOpen(true);
     };
 
     const handleSaveSection = async () => {
-        const rolesArray = sectionForm.roles.split(",").map(r => r.trim()).filter(Boolean);
         const sectionData = {
             title: sectionForm.title,
             icon: sectionForm.icon || undefined,
             path: sectionForm.path || undefined,
-            roles: rolesArray
+            roles: sectionForm.roles
         };
 
         if (editingSection) {
@@ -160,7 +196,7 @@ export const SidebarManagementPage = () => {
                 label: item.label,
                 icon: item.icon,
                 path: item.path,
-                roles: item.roles.join(","),
+                roles: item.roles?.length ? item.roles : ["USER", "TRAINER", "ADMIN"],
                 sectionId
             });
         } else {
@@ -169,7 +205,7 @@ export const SidebarManagementPage = () => {
                 label: "",
                 icon: "FolderOpen",
                 path: "",
-                roles: "USER,TRAINER,ADMIN",
+                roles: ["USER", "TRAINER", "ADMIN"],
                 sectionId
             });
         }
@@ -177,12 +213,11 @@ export const SidebarManagementPage = () => {
     };
 
     const handleSaveItem = async () => {
-        const rolesArray = itemForm.roles.split(",").map(r => r.trim()).filter(Boolean);
         const itemData = {
             label: itemForm.label,
             icon: itemForm.icon,
             path: itemForm.path,
-            roles: rolesArray,
+            roles: itemForm.roles,
             sectionId: itemForm.sectionId
         };
 
@@ -371,8 +406,11 @@ export const SidebarManagementPage = () => {
                             <Input value={sectionForm.path} onChange={(e) => setSectionForm({ ...sectionForm, path: e.target.value })} placeholder="e.g., /dashboard" />
                         </div>
                         <div className="space-y-2">
-                            <Label>Visible to Roles (comma separated)</Label>
-                            <Input value={sectionForm.roles} onChange={(e) => setSectionForm({ ...sectionForm, roles: e.target.value })} placeholder="USER, TRAINER, ADMIN" />
+                            <Label>Visible to Roles</Label>
+                            <RolePicker
+                                value={sectionForm.roles}
+                                onChange={(roles) => setSectionForm({ ...sectionForm, roles })}
+                            />
                         </div>
                     </div>
                     <DialogFooter>
@@ -410,8 +448,11 @@ export const SidebarManagementPage = () => {
                             <Input value={itemForm.path} onChange={(e) => setItemForm({ ...itemForm, path: e.target.value })} placeholder="e.g., /dashboard" />
                         </div>
                         <div className="space-y-2">
-                            <Label>Roles (comma separated)</Label>
-                            <Input value={itemForm.roles} onChange={(e) => setItemForm({ ...itemForm, roles: e.target.value })} placeholder="USER, TRAINER, ADMIN" />
+                            <Label>Visible to Roles</Label>
+                            <RolePicker
+                                value={itemForm.roles}
+                                onChange={(roles) => setItemForm({ ...itemForm, roles })}
+                            />
                         </div>
                     </div>
                     <DialogFooter>

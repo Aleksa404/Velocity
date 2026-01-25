@@ -9,8 +9,8 @@ import {
     updateSection,
     deleteSection,
     reorderSections,
-
-    uploadWorkshopImage
+    uploadWorkshopImage,
+    updateWorkshop
 } from "../../api/workshopApi";
 import { deleteVideo, moveVideoToSection } from "../../api/videoApi";
 import type { Workshop, WorkshopEnrollment, WorkshopSection } from "../../Types/Workshop";
@@ -55,11 +55,24 @@ const WorkshopManagementPage = () => {
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const imageInputRef = useRef<HTMLInputElement>(null);
 
+    // Workshop edit state
+    const [editTitle, setEditTitle] = useState("");
+    const [editDescription, setEditDescription] = useState("");
+    const [isSavingDetails, setIsSavingDetails] = useState(false);
+
     useEffect(() => {
         if (id) {
             fetchData();
         }
     }, [id]);
+
+    // Initialize edit fields when workshop data changes
+    useEffect(() => {
+        if (workshop) {
+            setEditTitle(workshop.title || "");
+            setEditDescription(workshop.description || "");
+        }
+    }, [workshop]);
 
     const fetchData = async () => {
         try {
@@ -73,6 +86,24 @@ const WorkshopManagementPage = () => {
             toast.error("Failed to load course data");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleSaveDetails = async () => {
+        if (!id || !editTitle.trim()) return;
+
+        setIsSavingDetails(true);
+        try {
+            const response = await updateWorkshop(id, {
+                title: editTitle.trim(),
+                description: editDescription.trim()
+            });
+            setWorkshop(prev => prev ? { ...prev, ...response.data } : prev);
+            toast.success("Course details updated!");
+        } catch (error) {
+            toast.error("Failed to update course details");
+        } finally {
+            setIsSavingDetails(false);
         }
     };
 
@@ -199,7 +230,7 @@ const WorkshopManagementPage = () => {
         }
 
         try {
-            await reorderSections(id!, sections.map(s => s.id));
+            await reorderSections(id!, sections.map((s, index) => ({ id: s.id, order: index })));
             setWorkshop({ ...workshop, sections }); // Optimistic update
             toast.success("Order updated");
         } catch (error) {
@@ -299,7 +330,51 @@ const WorkshopManagementPage = () => {
                                 Customize your course appearance.
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-6">
+                        <CardContent className="space-y-8">
+                            {/* Course Details Section */}
+                            <div className="space-y-4">
+                                <Label className="text-sm font-bold text-foreground">Course Details</Label>
+                                <div className="space-y-4 p-4 bg-muted/20 rounded-2xl border border-border/50">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="edit-title" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Title</Label>
+                                        <Input
+                                            id="edit-title"
+                                            value={editTitle}
+                                            onChange={(e) => setEditTitle(e.target.value)}
+                                            placeholder="Course title..."
+                                            className="h-12 rounded-xl bg-background border-border focus:border-indigo-500/50 transition-all text-foreground font-medium"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="edit-description" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Description</Label>
+                                        <textarea
+                                            id="edit-description"
+                                            value={editDescription}
+                                            onChange={(e) => setEditDescription(e.target.value)}
+                                            placeholder="Describe what students will learn..."
+                                            rows={4}
+                                            className="w-full rounded-xl bg-background border border-border focus:border-indigo-500/50 transition-all text-foreground font-medium p-3 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                        />
+                                    </div>
+                                    <div className="flex justify-end pt-2">
+                                        <Button
+                                            onClick={handleSaveDetails}
+                                            disabled={isSavingDetails || !editTitle.trim() || (editTitle === workshop.title && editDescription === (workshop.description || ""))}
+                                            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-11 px-6 font-bold shadow-lg shadow-indigo-500/20 disabled:opacity-50"
+                                        >
+                                            {isSavingDetails ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Saving...
+                                                </>
+                                            ) : (
+                                                "Save Details"
+                                            )}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+
                             {/* Cover Image Section */}
                             <div className="space-y-3">
                                 <Label className="text-sm font-bold text-foreground">Cover Image</Label>
@@ -462,7 +537,7 @@ const WorkshopManagementPage = () => {
                                         <p className="text-muted-foreground font-bold italic">No sections created yet.</p>
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="flex flex-col gap-3">
                                         {workshop.sections.map((section, index) => (
                                             <div key={section.id} className="flex items-center justify-between p-5 bg-muted/30 dark:bg-muted/10 border border-border/50 rounded-2xl transition-all hover:border-indigo-500/30 group">
                                                 <div className="flex items-center gap-4">

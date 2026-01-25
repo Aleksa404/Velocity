@@ -100,8 +100,8 @@ export const deleteSection = async (sectionId: string) => {
     return response.data;
 };
 
-export const reorderSections = async (workshopId: string, sectionIds: string[]) => {
-    const response = await axiosInstance.post<ApiResponse<any>>(`${BASE_URL}/${workshopId}/sections/reorder`, { sectionIds });
+export const reorderSections = async (workshopId: string, sections: { id: string; order: number }[]) => {
+    const response = await axiosInstance.post<ApiResponse<any>>(`${BASE_URL}/${workshopId}/sections/reorder`, { sections });
     return response.data;
 };
 

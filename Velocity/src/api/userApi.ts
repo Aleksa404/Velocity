@@ -4,22 +4,22 @@ import type { User } from "../Types/User";
 
 const BASE_URL = "/users";
 
-export const getUserRole = async (userId: string) => {
-  console.log("Fetching user role for ID:", userId);
-  try {
-    const response = await axiosInstance.get<ApiResponse<string>>(
-      `${BASE_URL}/role/${userId}`
-    );
-    console.log("User role fetched:", response.data);
-    if (!response.data.success) {
-      throw new Error(response.data.message || "Failed to fetch user role");
-    }
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching user role:", error);
-    throw error;
-  }
-};
+// export const getUserRole = async (userId: string) => {
+//   console.log("Fetching user role for ID:", userId);
+//   try {
+//     const response = await axiosInstance.get<ApiResponse<string>>(
+//       `${BASE_URL}/role/${userId}`
+//     );
+//     console.log("User role fetched:", response.data);
+//     if (!response.data.success) {
+//       throw new Error(response.data.message || "Failed to fetch user role");
+//     }
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error fetching user role:", error);
+//     throw error;
+//   }
+// };
 export const updateUserRole = async (userId: string, role: string) => {
   try {
     const response = await axiosInstance.patch<ApiResponse<User>>(
