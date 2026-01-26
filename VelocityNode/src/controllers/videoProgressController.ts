@@ -10,8 +10,16 @@ export const updateVideoProgress = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                data: null,
+                message: "Unauthorized",
+            });
+        }
+        const { id: userId } = user;
         const { id: videoId } = req.params;
-        const { id: userId } = req.user!;
         const { watchedSeconds, totalDuration } = req.body;
 
         if (typeof watchedSeconds !== "number" || watchedSeconds < 0) {
@@ -77,8 +85,16 @@ export const getVideoProgress = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                data: null,
+                message: "Unauthorized",
+            });
+        }
         const { id: videoId } = req.params;
-        const { id: userId } = req.user!;
+        const { id: userId } = user;
 
         const progress = await prisma.videoWatchProgress.findUnique({
             where: {
@@ -110,7 +126,15 @@ export const getContinueWatching = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
-        const { id: userId } = req.user!;
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                data: null,
+                message: "Unauthorized",
+            });
+        }
+        const { id: userId } = user;
         const limit = parseInt(req.query.limit as string) || 10;
 
         const continueWatching = await prisma.videoWatchProgress.findMany({
@@ -167,8 +191,16 @@ export const markVideoComplete = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                data: null,
+                message: "Unauthorized",
+            });
+        }
         const { id: videoId } = req.params;
-        const { id: userId } = req.user!;
+        const { id: userId } = user;
 
         const progress = await prisma.videoWatchProgress.upsert({
             where: {

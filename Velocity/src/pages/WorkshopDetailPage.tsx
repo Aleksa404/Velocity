@@ -10,7 +10,7 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Users, Video as VideoIcon, Play, Check, Circle, BookOpen, Clock, ChevronRight, Lock, ListVideo } from "lucide-react";
+import { Users, Video as VideoIcon, Play, Check, Circle, BookOpen, Clock, ChevronRight, Lock, ListVideo, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { useUserStore } from "../stores/userStore";
 import { Link } from "react-router";
@@ -373,6 +373,16 @@ const WorkshopDetailPage = () => {
                                     />
                                 </div>
                             </div>
+                        )}
+                        {(user?.role === 'ADMIN' || isOwner) && (
+                            <Button
+                                onClick={() => navigate(`/course/${id}/manage`)}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl h-9 px-4 shadow-sm flex items-center gap-2"
+                                size="sm"
+                            >
+                                <Settings className="w-4 h-4" />
+                                <span className="hidden sm:inline">Manage Course</span>
+                            </Button>
                         )}
                         {getEnrollmentButton()}
                     </div>

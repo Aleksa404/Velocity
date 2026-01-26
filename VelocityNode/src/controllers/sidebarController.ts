@@ -71,7 +71,7 @@ export const upsertSection = async (req: Request, res: Response<ApiResponse<any>
 };
 
 // Delete Section
-export const deleteSection = async (req: Request, res: Response<ApiResponse<any>>) => {
+export const deleteSection = async (req: Request, res: Response<ApiResponse<null>>) => {
     try {
         const { id } = req.params;
         await prisma.sidebarSection.delete({ where: { id } });
@@ -131,7 +131,7 @@ export const upsertItem = async (req: Request, res: Response<ApiResponse<any>>) 
 };
 
 // Delete Item
-export const deleteItem = async (req: Request, res: Response<ApiResponse<any>>) => {
+export const deleteItem = async (req: Request, res: Response<ApiResponse<null>>) => {
     try {
         const { id } = req.params;
         await prisma.sidebarItem.delete({ where: { id } });
@@ -151,7 +151,7 @@ export const deleteItem = async (req: Request, res: Response<ApiResponse<any>>) 
 };
 
 // Reorder Sections
-export const reorderSections = async (req: Request, res: Response<ApiResponse<any>>) => {
+export const reorderSections = async (req: Request, res: Response<ApiResponse<null>>) => {
     try {
         const { sections } = req.body; // Expects array of { id, order }
 

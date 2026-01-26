@@ -9,10 +9,9 @@ const VIDEOS_DIR = path.join(__dirname, "../../videos");
 
 export const createVideo = async (req: Request, res: Response) => {
     try {
-        const userId = req.user?.id;
-        if (!userId) {
-            return res.status(401).json({ message: "Unauthorized" });
-        }
+        const user = req.user;
+        if (!user) { return res.status(401).json({ success: false, data: null, message: "Unauthorized" }) }
+        const userId = user.id;
 
         if (!req.file) {
             return res.status(400).json({ message: "No video file provided" });
@@ -76,7 +75,9 @@ export const createVideo = async (req: Request, res: Response) => {
 
 export const getVideos = async (req: Request, res: Response) => {
     try {
-        const userId = req.user?.id;
+        const user = req.user;
+        if (!user) { return res.status(401).json({ success: false, data: null, message: "Unauthorized" }) }
+        const userId = user.id;
         const workshopId = req.query.workshopId as string;
 
         if (!workshopId) {
@@ -144,7 +145,9 @@ export const getVideos = async (req: Request, res: Response) => {
 
 export const deleteVideo = async (req: Request, res: Response) => {
     try {
-        const userId = req.user?.id;
+        const user = req.user;
+        if (!user) { return res.status(401).json({ success: false, data: null, message: "Unauthorized" }) }
+        const userId = user.id;
         const videoId = req.params.id as string;
 
         const video = await prisma.video.findUnique({
@@ -240,7 +243,9 @@ export const streamVideo = async (req: Request, res: Response) => {
 };
 export const updateVideoSection = async (req: Request, res: Response) => {
     try {
-        const userId = req.user?.id;
+        const user = req.user;
+        if (!user) { return res.status(401).json({ success: false, data: null, message: "Unauthorized" }) }
+        const userId = user.id;
         const videoId = req.params.id;
         const { sectionId } = req.body;
 

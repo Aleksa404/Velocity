@@ -10,7 +10,15 @@ export const createTrainerRequest = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
-        const { id: userId } = req.user!;
+        const userreq = req.user;
+        if (!userreq) {
+            return res.status(401).json({
+                success: false,
+                data: null,
+                message: "Unauthorized",
+            });
+        }
+        const { id: userId } = userreq;
         const { message } = req.body;
 
         // Check if user already has a pending request
@@ -282,7 +290,15 @@ export const getUserTrainerRequest = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
-        const { id: userId } = req.user!;
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                data: null,
+                message: "Unauthorized",
+            });
+        }
+        const { id: userId } = user;
 
         const request = await prisma.trainerRequest.findFirst({
             where: {

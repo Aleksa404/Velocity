@@ -242,7 +242,7 @@ export const SidebarManagementPage = () => {
             return;
         }
 
-        // Update items one by one (could be optimized with a reorderItems API if needed)
+        // Update items one by one
         for (let i = 0; i < newItems.length; i++) {
             if (newItems[i].order !== i) {
                 await updateItem(newItems[i].id, { order: i });

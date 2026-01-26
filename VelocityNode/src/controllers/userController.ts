@@ -1,29 +1,84 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import { ApiResponse, UserLoginResponse } from "../types/ApiResponse";
+import { success } from "zod";
 
 const prisma = new PrismaClient();
 
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const users = await prisma.user.findMany();
-    res.status(200).json(users);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch users" });
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 10, 1), 10);
+    const search = (req.query.search as string)?.trim() || "";
+
+    const skip = (page - 1) * limit;
+
+    const whereClause = search
+      ? {
+        OR: [
+          { first_name: { contains: search, mode: "insensitive" as const } },
+          { last_name: { contains: search, mode: "insensitive" as const } },
+          { email: { contains: search, mode: "insensitive" as const } },
+        ],
+      }
+      : {};
+
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where: whereClause,
+        select: {
+          id: true,
+          first_name: true,
+          last_name: true,
+          email: true,
+          role: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.user.count({ where: whereClause }),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        users,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
+      },
+      message: "Users fetched successfully",
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, data: null, message: "Failed to fetch users" });
   }
 };
 
-export const deleteUserbyEmail = async (req: Request, res: Response) => {
-  const { email } = req.params;
+
+export const deleteUser = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const user = req.user;
+  if (!user) {
+    return res.status(401).json({ success: false, message: "Unauthorized", data: null });
+  }
   try {
-    const deletedUser = await prisma.user.delete({
-      where: {
-        email: email,
-      },
+    const exists = await prisma.user.findUnique({ where: { id } });
+    if (!exists) {
+      return res.status(404).json({ success: false, message: "User not found", data: null });
+    }
+
+    if (user.id === id || exists.role === "ADMIN") {
+      return res.status(403).json({ success: false, message: "Cannot delete your own or admin accounts", data: null });
+    }
+
+    await prisma.user.delete({
+      where: { id },
     });
-    res.status(200).json(deletedUser);
+    res.status(200).json({ success: true, message: "User deleted successfully", data: null });
   } catch (error) {
-    res.status(500).json({ error: "Failed to delete user" });
+    res.status(500).json({ success: false, message: "Failed to delete user", data: null });
   }
 };
 
@@ -63,36 +118,64 @@ export const getUserRole = async (
 
 export const updateUserRole = async (
   req: Request,
-  res: Response<ApiResponse<any>>
+  res: Response<ApiResponse<null>>
 ) => {
   const { id } = req.params;
   const { role } = req.body;
   try {
-    const updatedUser = await prisma.user.update({
+    const validRoles = ["USER", "TRAINER", "ADMIN"];
+    if (!role || !validRoles.includes(role)) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: "Invalid role. Must be USER, TRAINER, or ADMIN",
+      });
+    }
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true, role: true }
+    });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: "User not found",
+      });
+    }
+    if (id === req.user?.id || user.role === "ADMIN") {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: "Cannot modify your own or other admin roles",
+      });
+    }
+
+    await prisma.user.update({
       where: { id: id },
       data: { role: role },
     });
 
-    const response: ApiResponse<typeof updatedUser> = {
-      success: true,
-      data: updatedUser,
-      message: "User role updated successfully",
-    };
 
-    res.status(200).json(response);
+
+    res.status(200).json({
+      success: true,
+      data: null,
+      message: "User role updated successfully",
+    });
   } catch (error: any) {
-    const response: ApiResponse<null> = {
+    res.status(500).json({
       success: false,
       data: null,
-      message: error.message || "Failed to update user role",
-    };
-    res.status(500).json(response);
+      message: "Failed to update user role",
+    });
   }
 };
 
 export const getCurrentUser = async (req: Request, res: Response) => {
   try {
-    const { id } = req.user!;
+    const user = req.user;
+    if (!user) { return res.status(401).json({ success: false, data: null, message: "Unauthorized" }) }
+    const { id } = user;
     if (!id) {
       return res.status(401).json({ message: "Unauthorized: Missing userId" });
     }

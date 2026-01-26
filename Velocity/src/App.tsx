@@ -10,7 +10,7 @@ function App() {
   const user = useUserStore((state) => state.user);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background">
+    <div className="min-h-screen bg-white dark:bg-background">
       <Navbar />
       <div className="flex">
         {user && <Sidebar />}

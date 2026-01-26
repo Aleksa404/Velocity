@@ -55,7 +55,7 @@ const WorkshopCard = ({ workshop, onEnroll, enrollmentStatus, onDelete }: Worksh
             return (
                 <Button
                     disabled
-                    className="w-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20 h-10 rounded-xl font-medium"
+                    className="w-full bg-card text-amber-600 dark:text-yellow-400 border  h-10 rounded-xl font-medium"
                 >
                     Enrollment Pending
                 </Button>
@@ -100,7 +100,7 @@ const WorkshopCard = ({ workshop, onEnroll, enrollmentStatus, onDelete }: Worksh
 
 
     return (
-        <Card className="group relative overflow-hidden bg-card shadow-sm hover:shadow-xl dark:shadow-none dark:hover:ring-1 dark:hover:ring-white/10 transition-all duration-300 rounded-2xl flex flex-col h-full border border-border">
+        <Card className="group relative overflow-hidden  bg-card shadow-sm hover:shadow-xl dark:shadow-none dark:hover:ring-1 dark:hover:ring-white/10 transition-all duration-300 rounded-2xl flex flex-col h-full border border-border">
             {/* Action Overlay (Delete) */}
             {onDelete && (
                 <div
@@ -242,7 +242,7 @@ const WorkshopCard = ({ workshop, onEnroll, enrollmentStatus, onDelete }: Worksh
                         {(user?.role === 'ADMIN' || (user?.role === 'TRAINER' && user?.id === workshop.trainerId)) && (
                             <Button
                                 variant="secondary"
-                                className="w-full bg-muted/50 hover:bg-muted text-foreground font-bold rounded-xl h-10 border border-border/50"
+                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl h-10 border border-border/100"
                                 onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();

@@ -10,7 +10,15 @@ export const getAllTrainers = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
-        const currentUserId = req.user?.id;
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                data: null,
+                message: "Unauthorized",
+            });
+        }
+        const currentUserId = user.id;
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 12;
         const skip = (page - 1) * limit;
@@ -114,8 +122,9 @@ export const searchTrainers = async (
             where: {
                 role: "TRAINER",
                 OR: [
-                    { first_name: { contains: query as string } },
-                    { last_name: { contains: query as string } },
+                    { first_name: { contains: query as string, mode: "insensitive" } },
+                    { last_name: { contains: query as string, mode: "insensitive" } },
+                    { email: { contains: query as string, mode: "insensitive" } },
                 ],
             },
             select: {
@@ -339,8 +348,16 @@ export const unfollowTrainer = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                data: null,
+                message: "Unauthorized",
+            });
+        }
         const { id: trainerId } = req.params;
-        const { id: userId } = req.user!;
+        const { id: userId } = user;
 
         const follow = await prisma.follow.findUnique({
             where: {
@@ -389,7 +406,15 @@ export const getFollowing = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
-        const { id: userId } = req.user!;
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                data: null,
+                message: "Unauthorized",
+            });
+        }
+        const { id: userId } = user;
 
         const following = await prisma.follow.findMany({
             where: { userId },

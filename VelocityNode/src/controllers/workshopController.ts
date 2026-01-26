@@ -71,7 +71,15 @@ export const getAllWorkshops = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
-        const currentUserId = req.user?.id;
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                data: null,
+                message: "Unauthorized",
+            });
+        }
+        const currentUserId = user.id;
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 20;
         const search = req.query.search as string || "";
@@ -227,13 +235,6 @@ export const getWorkshopById = async (
                         videos: {
                             orderBy: { uploadedAt: "asc" },
                             include: {
-                                trainer: {
-                                    select: {
-                                        id: true,
-                                        first_name: true,
-                                        last_name: true,
-                                    },
-                                },
                                 watchProgress: currentUserId ? {
                                     where: { userId: currentUserId },
                                     select: {
@@ -252,13 +253,6 @@ export const getWorkshopById = async (
                     where: { sectionId: null },
                     orderBy: { uploadedAt: "asc" },
                     include: {
-                        trainer: {
-                            select: {
-                                id: true,
-                                first_name: true,
-                                last_name: true,
-                            },
-                        },
                         watchProgress: currentUserId ? {
                             where: { userId: currentUserId },
                             select: {
@@ -294,6 +288,7 @@ export const getWorkshopById = async (
         const enrollmentStatus =
             workshop.enrollments?.[0]?.status || null;
 
+
         res.status(200).json({
             success: true,
             data: { ...workshop, enrollmentStatus },
@@ -304,7 +299,7 @@ export const getWorkshopById = async (
         res.status(500).json({
             success: false,
             data: null,
-            message: error.message || "Failed to fetch workshop",
+            message: "Failed to fetch workshop",
         });
     }
 };
@@ -315,8 +310,14 @@ export const updateWorkshop = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
+        const user = req.user;
+        if (!user) return res.status(401).json({
+            success: false,
+            data: null,
+            message: "Unauthorized"
+        })
+        const { id: userId } = user;
         const { id } = req.params;
-        const { id: userId } = req.user!;
         const { title, description } = req.body;
 
         const workshop = await prisma.workshop.findUnique({
@@ -345,26 +346,8 @@ export const updateWorkshop = async (
                 title,
                 description,
             },
-            include: {
-                trainer: {
-                    select: {
-                        id: true,
-                        first_name: true,
-                        last_name: true,
-                        email: true,
-                    },
-                },
-                _count: {
-                    select: {
-                        enrollments: {
-                            where: { status: "APPROVED" },
-                        },
-                        videos: true,
-                    },
-                },
-            },
         });
-
+        console.log(updatedWorkshop);
         res.status(200).json({
             success: true,
             data: updatedWorkshop,
@@ -385,8 +368,14 @@ export const deleteWorkshop = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
+        const user = req.user;
+        if (!user) return res.status(401).json({
+            success: false,
+            data: null,
+            message: "Unauthorized"
+        })
         const { id } = req.params;
-        const { id: userId } = req.user!;
+        const { id: userId } = user;
 
         const workshop = await prisma.workshop.findUnique({
             where: { id },
@@ -407,29 +396,32 @@ export const deleteWorkshop = async (
                 message: "You can only delete your own workshops",
             });
         }
+        await prisma.$transaction(async (tx) => {
+            const videos = await tx.video.findMany({
+                where: { workshopId: id },
+                select: { id: true, url: true, storageType: true },
+            });
 
-        const videos = await prisma.video.findMany({
-            where: { workshopId: id },
-        });
-
-        // Queue delete jobs for each video
-        for (const video of videos) {
-            try {
-                await videoUploadQueue.add("video-delete", {
-                    type: "delete",
-                    videoUrl: video.url,
-                    storageType: video.storageType as any,
-                    userId
-                });
-                console.log(`Queued ${video.storageType} delete for video: ${video.id}`);
-            } catch (err) {
-                console.error(`Failed to queue delete for video ${video.id}:`, err);
+            // Queue all video deletions - fail if ANY fail
+            if (videos.length > 0) {
+                await Promise.all(
+                    videos.map(video =>
+                        videoUploadQueue.add("video-delete", {
+                            type: "delete",
+                            videoUrl: video.url,
+                            storageType: video.storageType as any,
+                            userId
+                        })
+                    )
+                );
             }
-        }
 
-        await prisma.workshop.delete({
-            where: { id },
+            // Delete workshop (cascade deletes videos, sections, etc via schema)
+            await tx.workshop.delete({
+                where: { id },
+            });
         });
+
 
         res.status(200).json({
             success: true,
@@ -451,8 +443,14 @@ export const enrollInWorkshop = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
+        const user = req.user;
+        if (!user) return res.status(401).json({
+            success: false,
+            data: null,
+            message: "Unauthorized"
+        })
         const { id: workshopId } = req.params;
-        const { id: userId } = req.user!;
+        const { id: userId } = user;
 
         const workshop = await prisma.workshop.findUnique({
             where: { id: workshopId },
@@ -484,38 +482,17 @@ export const enrollInWorkshop = async (
             });
         }
 
-        const enrollment = await prisma.workshopEnrollment.create({
+        await prisma.workshopEnrollment.create({
             data: {
                 userId,
                 workshopId,
             },
-            include: {
-                workshop: {
-                    include: {
-                        trainer: {
-                            select: {
-                                id: true,
-                                first_name: true,
-                                last_name: true,
-                                email: true,
-                            },
-                        },
-                    },
-                },
-                user: {
-                    select: {
-                        id: true,
-                        first_name: true,
-                        last_name: true,
-                        email: true,
-                    },
-                },
-            },
+
         });
 
         res.status(201).json({
             success: true,
-            data: enrollment,
+            data: null,
             message: "Enrollment request submitted successfully",
         });
     } catch (error: any) {
@@ -533,8 +510,14 @@ export const getWorkshopEnrollments = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
+        const user = req.user;
+        if (!user) return res.status(401).json({
+            success: false,
+            data: null,
+            message: "Unauthorized"
+        })
         const { id: workshopId } = req.params;
-        const { id: userId } = req.user!;
+        const { id: userId } = user;
 
         const workshop = await prisma.workshop.findUnique({
             where: { id: workshopId },
@@ -549,9 +532,6 @@ export const getWorkshopEnrollments = async (
         }
 
         if (workshop.trainerId !== userId) {
-            console.log(workshop.trainerId);
-            console.log(userId);
-            console.warn(`Access denied: User ${userId} tried to view enrollments for workshop ${workshopId} owned by ${workshop.trainerId}`);
             return res.status(403).json({
                 success: false,
                 data: null,
@@ -568,7 +548,6 @@ export const getWorkshopEnrollments = async (
                         first_name: true,
                         last_name: true,
                         email: true,
-                        role: true,
                     },
                 },
             },
@@ -587,7 +566,7 @@ export const getWorkshopEnrollments = async (
         res.status(500).json({
             success: false,
             data: null,
-            message: error.message || "Failed to fetch enrollments",
+            message: "Failed to fetch enrollments",
         });
     }
 };
@@ -598,8 +577,14 @@ export const approveEnrollment = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
+        const user = req.user;
+        if (!user) return res.status(401).json({
+            success: false,
+            data: null,
+            message: "Unauthorized"
+        })
+        const { id: userId } = user;
         const { id: enrollmentId } = req.params;
-        const { id: userId } = req.user!;
 
         const enrollment = await prisma.workshopEnrollment.findUnique({
             where: { id: enrollmentId },
@@ -632,36 +617,15 @@ export const approveEnrollment = async (
             });
         }
 
-        const updatedEnrollment = await prisma.workshopEnrollment.update({
+        await prisma.workshopEnrollment.update({
             where: { id: enrollmentId },
             data: { status: "APPROVED" },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        first_name: true,
-                        last_name: true,
-                        email: true,
-                    },
-                },
-                workshop: {
-                    include: {
-                        trainer: {
-                            select: {
-                                id: true,
-                                first_name: true,
-                                last_name: true,
-                                email: true,
-                            },
-                        },
-                    },
-                },
-            },
+
         });
 
         res.status(200).json({
             success: true,
-            data: updatedEnrollment,
+            data: null,
             message: "Enrollment approved successfully",
         });
     } catch (error: any) {
@@ -669,7 +633,7 @@ export const approveEnrollment = async (
         res.status(500).json({
             success: false,
             data: null,
-            message: error.message || "Failed to approve enrollment",
+            message: "Failed to approve enrollment",
         });
     }
 };
@@ -713,36 +677,15 @@ export const denyEnrollment = async (
             });
         }
 
-        const updatedEnrollment = await prisma.workshopEnrollment.update({
+        await prisma.workshopEnrollment.update({
             where: { id: enrollmentId },
             data: { status: "DENIED" },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        first_name: true,
-                        last_name: true,
-                        email: true,
-                    },
-                },
-                workshop: {
-                    include: {
-                        trainer: {
-                            select: {
-                                id: true,
-                                first_name: true,
-                                last_name: true,
-                                email: true,
-                            },
-                        },
-                    },
-                },
-            },
+
         });
 
         res.status(200).json({
             success: true,
-            data: updatedEnrollment,
+            data: null,
             message: "Enrollment denied",
         });
     } catch (error: any) {
@@ -760,10 +703,16 @@ export const getUserEnrollments = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
-        const { id: userId } = req.user!;
+        const user = req.user;
+        if (!user) return res.status(401).json({
+            success: false,
+            data: null,
+            message: "Unauthorized"
+        })
+        const { id: userId } = user;
 
         const enrollments = await prisma.workshopEnrollment.findMany({
-            where: { userId },
+            where: { userId, status: "APPROVED" },
             include: {
                 workshop: {
                     include: {
@@ -772,7 +721,7 @@ export const getUserEnrollments = async (
                                 id: true,
                                 first_name: true,
                                 last_name: true,
-                                email: true,
+
                             },
                         },
                         _count: {
@@ -809,7 +758,7 @@ export const getUserEnrollments = async (
         res.status(500).json({
             success: false,
             data: null,
-            message: error.message || "Failed to fetch user enrollments",
+            message: "Failed to fetch user enrollments",
         });
     }
 };
@@ -819,8 +768,14 @@ export const unenrollFromWorkshop = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
+        const user = req.user;
+        if (!user) return res.status(401).json({
+            success: false,
+            data: null,
+            message: "Unauthorized"
+        })
         const { id: workshopId } = req.params;
-        const { id: userId } = req.user!;
+        const { id: userId } = user;
 
         const enrollment = await prisma.workshopEnrollment.findUnique({
             where: {
@@ -840,20 +795,22 @@ export const unenrollFromWorkshop = async (
         }
 
         // Delete all video watch progress for this workshop
-        await prisma.videoWatchProgress.deleteMany({
-            where: {
-                userId,
-                video: {
-                    workshopId,
+        await prisma.$transaction([
+            prisma.videoWatchProgress.deleteMany({
+                where: {
+                    userId,
+                    video: {
+                        workshopId,
+                    },
                 },
-            },
-        });
+            }),
+            prisma.workshopEnrollment.delete({
+                where: {
+                    id: enrollment.id,
+                },
+            }),
+        ]);
 
-        await prisma.workshopEnrollment.delete({
-            where: {
-                id: enrollment.id,
-            },
-        });
 
         res.status(200).json({
             success: true,
@@ -865,7 +822,7 @@ export const unenrollFromWorkshop = async (
         res.status(500).json({
             success: false,
             data: null,
-            message: error.message || "Failed to unenroll from workshop",
+            message: "Failed to unenroll from workshop",
         });
     }
 };
@@ -875,12 +832,30 @@ export const createSection = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
+        const user = req.user;
+        if (!user) return res.status(401).json({
+            success: false,
+            data: null,
+            message: "Unauthorized"
+        })
+        console.log(req.body)
         const { id: workshopId } = req.params;
-        const { id: userId } = req.user!;
+        const { id: userId } = user;
         const { title } = req.body;
+
+        if (!title || !title.trim() || typeof title !== "string") {
+            return res.status(400).json({
+                success: false,
+                data: null,
+                message: "Title is required and must be a string",
+            });
+        }
 
         const workshop = await prisma.workshop.findUnique({
             where: { id: workshopId },
+            select: {
+                trainerId: true,
+            },
         });
 
         if (!workshop) {
@@ -899,19 +874,22 @@ export const createSection = async (
             });
         }
 
-        // Get max order
-        const lastSection = await prisma.workshopSection.findFirst({
-            where: { workshopId },
-            orderBy: { order: "desc" },
-        });
-        const newOrder = lastSection ? lastSection.order + 1 : 0;
+        const section = await prisma.$transaction(async (tx) => {
+            const last = await tx.workshopSection.findFirst({
+                where: { workshopId },
+                orderBy: { order: "desc" },
+                select: { order: true },
+            });
 
-        const section = await prisma.workshopSection.create({
-            data: {
-                title,
-                workshopId,
-                order: newOrder,
-            },
+            const nextOrder = last ? last.order + 1 : 0;
+
+            return tx.workshopSection.create({
+                data: {
+                    title: title.trim(),
+                    workshopId,
+                    order: nextOrder,
+                },
+            });
         });
 
         res.status(201).json({
@@ -924,7 +902,7 @@ export const createSection = async (
         res.status(500).json({
             success: false,
             data: null,
-            message: error.message || "Failed to create section",
+            message: "Failed to create section",
         });
     }
 };
@@ -934,13 +912,26 @@ export const updateSection = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
+        const user = req.user;
+        if (!user) return res.status(401).json({
+            success: false,
+            data: null,
+            message: "Unauthorized"
+        })
         const { id: sectionId } = req.params;
-        const { id: userId } = req.user!;
+        const { id: userId } = user;
         const { title } = req.body;
 
         const section = await prisma.workshopSection.findUnique({
             where: { id: sectionId },
-            include: { workshop: true },
+            select: {
+                id: true,
+                workshop: {
+                    select: {
+                        trainerId: true,
+                    }
+                }
+            },
         });
 
         if (!section) {
@@ -961,7 +952,7 @@ export const updateSection = async (
 
         const updatedSection = await prisma.workshopSection.update({
             where: { id: sectionId },
-            data: { title },
+            data: { title: title.trim() },
         });
 
         res.status(200).json({
@@ -974,7 +965,7 @@ export const updateSection = async (
         res.status(500).json({
             success: false,
             data: null,
-            message: error.message || "Failed to update section",
+            message: "Failed to update section",
         });
     }
 };
@@ -984,12 +975,27 @@ export const deleteSection = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                data: null,
+                message: "Unauthorized",
+            });
+        }
         const { id: sectionId } = req.params;
         const { id: userId } = req.user!;
 
         const section = await prisma.workshopSection.findUnique({
             where: { id: sectionId },
-            include: { workshop: true },
+            select: {
+                id: true,
+                workshopId: true,
+                workshop: {
+                    select: {
+                        trainerId: true,
+                    }
+                }
+            }
         });
 
         if (!section) {
@@ -1007,16 +1013,16 @@ export const deleteSection = async (
                 message: "You can only delete sections in your own workshops",
             });
         }
-
         // Move videos to null section before deleting
-        await prisma.video.updateMany({
-            where: { sectionId },
-            data: { sectionId: null },
-        });
-
-        await prisma.workshopSection.delete({
-            where: { id: sectionId },
-        });
+        await prisma.$transaction([
+            prisma.video.updateMany({
+                where: { sectionId },
+                data: { sectionId: null },
+            }),
+            prisma.workshopSection.delete({
+                where: { id: sectionId },
+            })
+        ])
 
         res.status(200).json({
             success: true,
@@ -1028,7 +1034,7 @@ export const deleteSection = async (
         res.status(500).json({
             success: false,
             data: null,
-            message: error.message || "Failed to delete section",
+            message: "Failed to delete section",
         });
     }
 };
@@ -1038,12 +1044,41 @@ export const reorderSections = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
+        const user = req.user;
+        if (!user) return res.status(401).json({
+            success: false,
+            data: null,
+            message: "Unauthorized"
+        })
         const { id: workshopId } = req.params;
-        const { id: userId } = req.user!;
+        const { id: userId } = user;
         const { sections } = req.body; // Array of { id, order }
+        console.log(sections);
+
+        if (!Array.isArray(sections) || sections.length === 0) {
+            return res.status(400).json({
+                success: false,
+                data: null,
+                message: "Invalid sections payload",
+            });
+        }
+        for (const s of sections) {
+            if (
+                typeof s.id !== "string" ||
+                typeof s.order !== "number" ||
+                s.order < 0
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    data: null,
+                    message: "Invalid section format",
+                });
+            }
+        }
 
         const workshop = await prisma.workshop.findUnique({
             where: { id: workshopId },
+            select: { id: true, trainerId: true }
         });
 
         if (!workshop) {
@@ -1061,16 +1096,31 @@ export const reorderSections = async (
                 message: "You can only reorder sections in your own workshops",
             });
         }
+        const validSections = await prisma.workshopSection.findMany({
+            where: {
+                workshopId,
+                id: { in: sections.map((s: any) => s.id) },
+            },
+            select: { id: true },
+        });
 
-        // Transaction to update all
-        await prisma.$transaction(
-            sections.map((s: { id: string; order: number }) =>
-                prisma.workshopSection.update({
-                    where: { id: s.id },
-                    data: { order: s.order },
-                })
-            )
+        if (validSections.length !== sections.length) {
+            return res.status(400).json({
+                success: false,
+                data: null,
+                message: "One or more sections do not belong to this workshop",
+            });
+        }
+
+        const updates = sections.map((s: { id: string; order: number }) =>
+            prisma.workshopSection.update({
+                where: { id: s.id },
+                data: { order: s.order },
+            })
         );
+
+        await prisma.$transaction(updates);
+
 
         res.status(200).json({
             success: true,
@@ -1082,7 +1132,7 @@ export const reorderSections = async (
         res.status(500).json({
             success: false,
             data: null,
-            message: error.message || "Failed to reorder sections",
+            message: "Failed to reorder sections",
         });
     }
 };
@@ -1094,9 +1144,15 @@ export const getMyWorkshops = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
-        const { id: trainerId, role } = req.user!;
+        const user = req.user;
+        if (!user) return res.status(401).json({
+            success: false,
+            data: null,
+            message: "Unauthorized"
+        })
+        const { id: trainerId, role } = user;
 
-        if (role !== "TRAINER" && role !== "ADMIN") {
+        if (role !== "TRAINER") {
             return res.status(403).json({
                 success: false,
                 data: null,
@@ -1150,11 +1206,22 @@ export const getTrainerPendingEnrollments = async (
     res: Response<ApiResponse<any>>
 ) => {
     try {
+        const user = req.user;
+        if (!user) return res.status(401).json({
+            success: false,
+            data: null,
+            message: "Unauthorized"
+        })
 
-        const { id: trainerId } = req.user!;
+        const { id: trainerId } = user;
 
         const workshops = await prisma.workshop.findMany({
-            where: { trainerId },
+            where: {
+                trainerId,
+                enrollments: {
+                    some: { status: "PENDING" }
+                }
+            },
             include: {
                 enrollments: {
                     where: { status: "PENDING" },
@@ -1176,9 +1243,7 @@ export const getTrainerPendingEnrollments = async (
         });
 
         // Only return workshops that have pending enrollments
-        const workshopsWithPending = workshops.filter(
-            (workshop) => workshop.enrollments.length > 0
-        );
+        const workshopsWithPending = workshops;
 
         res.status(200).json({
             success: true,
