@@ -27,7 +27,6 @@ const axiosInstance: AxiosInstance = axios.create({
 });
 
 // Token management
-let accessToken: string | null = localStorage.getItem("accessToken");
 let isRefreshing: boolean = false;
 let failedQueue: QueuedRequest[] = [];
 
@@ -117,7 +116,6 @@ axiosInstance.interceptors.response.use(
         }
 
         // Update stored token
-        accessToken = newAccessToken;
         localStorage.setItem("accessToken", newAccessToken);
 
         if (user) {
@@ -141,7 +139,6 @@ axiosInstance.interceptors.response.use(
         processQueue(refreshError, null);
 
         // Clear stored token
-        accessToken = null;
         localStorage.removeItem("accessToken");
         if (axiosInstance.defaults.headers.common) {
           delete axiosInstance.defaults.headers.common["Authorization"];

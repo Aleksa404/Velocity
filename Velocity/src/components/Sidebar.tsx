@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ICON_LIST, ICON_MAP, type IconName } from "@/lib/icons";
+import { ICON_MAP, type IconName } from "@/lib/icons";
 
 
 interface NavItem {

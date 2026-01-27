@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ArrowLeft, Check, X, Video as VideoIcon, Users, Trash, Plus, Pencil, ArrowUp, ArrowDown, ChevronDown, ListVideo, ImagePlus, Settings, Loader2, PlayCircle, Layers } from "lucide-react";
+import { ArrowLeft, Check, X, Video as VideoIcon, Users, Trash, Plus, Pencil, ArrowUp, ArrowDown, ChevronDown, ListVideo, ImagePlus, Settings, Loader2, Layers } from "lucide-react";
 import VideoForm from "../../components/Video/VideoForm";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
