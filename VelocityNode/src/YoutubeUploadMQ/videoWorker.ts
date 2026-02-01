@@ -6,9 +6,16 @@ import { google } from "googleapis";
 import { PrismaClient } from "@prisma/client";
 import { VideoJobData } from "./videoQueue";
 import ffmpeg from "fluent-ffmpeg";
+import ffmpegPath from "ffmpeg-static";
 import { v4 as uuidv4 } from "uuid";
 
 const prisma = new PrismaClient();
+
+if (ffmpegPath) {
+  ffmpeg.setFfmpegPath(ffmpegPath);
+} else {
+  throw new Error('ffmpeg-static binary not found');
+}
 
 // Directory for storing compressed videos
 const VIDEOS_DIR = path.join(__dirname, "../../videos");
@@ -44,9 +51,6 @@ function compressVideo(inputPath: string, outputPath: string): Promise<void> {
             .output(outputPath)
             .on("start", (cmd) => {
                 console.log(`[FFmpeg] Started: ${cmd}`);
-            })
-            .on("progress", (progress) => {
-                console.log(`[FFmpeg] Progress: ${progress.percent?.toFixed(1)}%`);
             })
             .on("end", () => {
                 console.log(`[FFmpeg] Compression complete: ${outputPath}`);
@@ -287,6 +291,7 @@ export const videoUploadWorker = new Worker<VideoJobData>(
     },
     {
         connection: redisClient,
+        removeOnComplete: { count: 100 },
         concurrency: 2, // Lower concurrency for video processing (CPU intensive)
     }
 );

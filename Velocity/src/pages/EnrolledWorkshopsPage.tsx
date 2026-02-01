@@ -78,7 +78,7 @@ const EnrolledWorkshopsPage = () => {
                         You haven't enrolled in any courses. Browse our selection to find the right training for you.
                     </p>
                     <Link to="/course/all" className="mt-6">
-                        <Button className="bg-indigo-600 hover:bg-indigo-700">
+                        <Button className="bg-indigo-600 hover:bg-indigo-700 text-white" >
                             Browse Courses
                         </Button>
                     </Link>

@@ -28,7 +28,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
     LogOut,
     User as UserIcon,
-    Settings,
     Search,
     Menu,
     Sun,
@@ -267,10 +266,10 @@ const Navbar = () => {
                                     <UserIcon className="mr-2 h-4 w-4" />
                                     <span>Profile</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => navigate("/settings")}>
+                                {/* <DropdownMenuItem onClick={() => navigate("/settings")}>
                                     <Settings className="mr-2 h-4 w-4" />
                                     <span>Settings</span>
-                                </DropdownMenuItem>
+                                </DropdownMenuItem> */}
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                     onClick={handleLogout}

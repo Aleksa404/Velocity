@@ -19,9 +19,12 @@ async function main() {
 
   const app = express();
 
+  const allowedOrigins = process.env.CORS_ORIGIN?.split(',').map(origin => origin.trim()) || [];
+  console.log("Allowed Origins for CORS:", allowedOrigins);
+
   app.use(
     cors({
-      origin: process.env.CORS_ORIGIN,
+      origin: allowedOrigins,
       credentials: true,
     })
   );
