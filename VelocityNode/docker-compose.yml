@@ -22,13 +22,13 @@ services:
       dockerfile: Dockerfile
     container_name: velocity-backend
     restart: unless-stopped
-    ports:
-      - "${PORT:-5000}:5000"
+    expose:
+      - 5000"
     environment:
       NODE_ENV: production
       PORT: 5000
       DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: redis://:${REDIS_PASSWORD:-redisvelpw}@redis:6379
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       JWT_SECRET: ${JWT_SECRET}
       YOUTUBE_CLIENT_ID: ${YOUTUBE_CLIENT_ID}
       YOUTUBE_CLIENT_SECRET: ${YOUTUBE_CLIENT_SECRET}
