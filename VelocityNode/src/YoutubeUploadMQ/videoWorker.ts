@@ -296,6 +296,6 @@ export const videoUploadWorker = new Worker<VideoJobData>(
     {
         connection: redisClient,
         removeOnComplete: { count: 100 },
-        concurrency: 2, // Lower concurrency for video processing (CPU intensive)
+        concurrency: 1, // Lower concurrency for video processing (CPU intensive)
     }
 );
