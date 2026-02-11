@@ -23,7 +23,7 @@ services:
     container_name: velocity-backend
     restart: unless-stopped
     expose:
-      - 5000"
+      - "5000"
     environment:
       NODE_ENV: production
       PORT: 5000
