@@ -7,3 +7,11 @@ node_modules
 /dist
 /uploads
 /videos
+
+
+.env.production
+.env.docker
+deploy-hetzner.md
+DEPLOY.md
+DOCKER-DOCS.md
+

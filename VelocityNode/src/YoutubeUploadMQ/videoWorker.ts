@@ -12,9 +12,13 @@ import { v4 as uuidv4 } from "uuid";
 const prisma = new PrismaClient();
 
 if (ffmpegPath) {
-  ffmpeg.setFfmpegPath(ffmpegPath);
+    ffmpeg.setFfmpegPath(ffmpegPath);
+} else if (process.env.FFMPEG_PATH) {
+    // In Docker (Alpine), ffmpeg-static's glibc binary won't work.
+    // Fall back to the system binary set via FFMPEG_PATH env var.
+    ffmpeg.setFfmpegPath(process.env.FFMPEG_PATH);
 } else {
-  throw new Error('ffmpeg-static binary not found');
+    console.warn('No ffmpeg-static binary found; falling back to system ffmpeg on PATH');
 }
 
 // Directory for storing compressed videos

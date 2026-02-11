@@ -15,22 +15,22 @@ import { seedRootAdmin } from "./utils/seedRootAdmin";
 
 async function main() {
 
-  await seedRootAdmin();
 
   const app = express();
 
   const allowedOrigins = process.env.CORS_ORIGIN?.split(',').map(origin => origin.trim()) || [];
   console.log("Allowed Origins for CORS:", allowedOrigins);
 
-  app.use(
-    cors({
-      origin: allowedOrigins,
-      credentials: true,
-    })
+  app.use(cors({
+    origin: allowedOrigins,
+    credentials: true
+  })
   );
+
 
   const PORT = process.env.PORT || 5000;
 
+  await seedRootAdmin();
   // Middleware
   app.use(express.json());
   app.use(cookieParser());
@@ -45,6 +45,9 @@ async function main() {
   app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
   //routes
+  app.get("/api/health", (_req, res) => {
+    res.status(200).json({ status: "ok", uptime: process.uptime() });
+  });
   app.use("/api/auth", authRouter);
   app.use("/api/users", usersRouter);
   app.use("/api/videos", videoRouter);
