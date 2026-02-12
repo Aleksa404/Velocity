@@ -17,18 +17,25 @@ const TrainersPage = () => {
 
     useEffect(() => {
         fetchTrainers();
-    }, [currentPage]);
+    }, [currentPage, user?.id]);
 
     const fetchTrainers = async () => {
         setIsLoading(true);
         try {
             const response = await getAllTrainers(currentPage, 12);
-            setTrainers(response.data.trainers);
+            let trainerList = response.data.trainers;
+
+            // Filter out current user if they are a trainer
+            if (user?.id) {
+                trainerList = trainerList.filter(t => t.id !== user.id);
+            }
+
+            setTrainers(trainerList);
             setTotalPages(response.data.pagination.totalPages);
 
             // Initialize following map
             const map: Record<string, boolean> = {};
-            response.data.trainers.forEach((trainer: Trainer) => {
+            trainerList.forEach((trainer: Trainer) => {
                 map[trainer.id] = trainer.isFollowing || false;
             });
             setFollowingMap(map);
