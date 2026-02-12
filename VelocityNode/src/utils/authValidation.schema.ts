@@ -12,6 +12,7 @@ export const registerUserSchema = z
     confirmPassword: z
       .string()
       .min(8, "Confirm Password must be at least 8 characters long"),
+    captchaToken: z.string().min(1, "CAPTCHA token is required"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     path: ["confirmPassword"],

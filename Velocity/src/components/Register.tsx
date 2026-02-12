@@ -68,12 +68,7 @@ const RegisterPage = () => {
   const onSubmit = async (data: RegisterFormValues) => {
     setRegisterError("");
     try {
-      // Remove captchaToken before sending to backend if backend doesn't expect it yet
-      // Or keep it if backend verifies it. For now, we assume backend might not handle it, 
-      // but we validated it on client side.
-      const { captchaToken, ...signupData } = data;
-
-      const result = await signup(signupData);
+      const result = await signup(data);
 
       if (!result.success) {
         if (result.message === "Email already exists") {

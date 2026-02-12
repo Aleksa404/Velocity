@@ -17,6 +17,7 @@ export const signup = async (registerUser: RegisterUser) => {
         email: registerUser.email,
         password: registerUser.password,
         confirmPassword: registerUser.confirmPassword,
+        captchaToken: registerUser.captchaToken,
       }
     );
     const data = response.data.data;

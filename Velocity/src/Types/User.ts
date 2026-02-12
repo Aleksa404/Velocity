@@ -14,6 +14,7 @@ export interface RegisterUser {
   email: string;
   password: string;
   confirmPassword: string;
+  captchaToken?: string;
 }
 export interface LoginUser {
   email: string;

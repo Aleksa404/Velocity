@@ -14,6 +14,7 @@ import {
   rotateRefreshToken,
 } from "../utils/generateToken";
 import { success } from "zod";
+import { verifyCaptcha } from "../utils/captchaService";
 
 const prisma = new PrismaClient();
 
@@ -30,6 +31,16 @@ export const registerUser = async (req: Request, res: Response) => {
       success: false,
       data: null,
       errors: formatetErrors,
+    });
+  }
+
+  // Verify reCAPTCHA token with Google
+  const captchaResult = await verifyCaptcha(result.data.captchaToken);
+  if (!captchaResult.success) {
+    return res.status(400).json({
+      success: false,
+      data: null,
+      message: "CAPTCHA verification failed",
     });
   }
 
