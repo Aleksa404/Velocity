@@ -150,7 +150,7 @@ const WorkshopCard = ({ workshop, onEnroll, enrollmentStatus, onDelete }: Worksh
                 <div className="relative aspect-[16/9] overflow-hidden">
                     {workshop.imageUrl ? (
                         <img
-                            src={`http://localhost:5000${workshop.imageUrl}`}
+                            src={`${import.meta.env.VITE_API_URL}${workshop.imageUrl}`}
                             alt={workshop.title}
                             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
