@@ -383,7 +383,7 @@ const WorkshopManagementPage = () => {
                                         {workshop.imageUrl ? (
                                             <>
                                                 <img
-                                                    src={`${import.meta.env.VITE_API_URL}${workshop.imageUrl}`}
+                                                    src={`http://localhost:5000${workshop.imageUrl}`}
                                                     alt={workshop.title}
                                                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                                 />
