@@ -37,6 +37,7 @@ services:
       ROOT_ADMIN_PASSWORD: ${ROOT_ADMIN_PASSWORD}
       ROOT_ADMIN_NAME: ${ROOT_ADMIN_NAME}
       CORS_ORIGIN: ${CORS_ORIGIN}
+      RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY}
     volumes:
       - uploads_data:/app/uploads
       - videos_data:/app/videos
