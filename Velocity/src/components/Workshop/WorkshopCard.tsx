@@ -239,7 +239,7 @@ const WorkshopCard = ({ workshop, onEnroll, enrollmentStatus, onDelete }: Worksh
                             getEnrollmentButton()
                         )}
 
-                        {(user?.role === 'ADMIN' || (user?.role === 'TRAINER' && user?.id === workshop.trainerId)) && (
+                        {(user?.role === 'TRAINER' && user?.id === workshop.trainerId) && (
                             <Button
                                 variant="secondary"
                                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl h-10 border border-border/100"

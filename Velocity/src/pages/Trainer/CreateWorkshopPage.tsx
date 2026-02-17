@@ -24,7 +24,7 @@ const CreateWorkshopPage = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Check if user is a trainer
-    if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN")) {
+    if (!user || (user.role !== "TRAINER")) {
         return <Navigate to="/course/all" />;
     }
 

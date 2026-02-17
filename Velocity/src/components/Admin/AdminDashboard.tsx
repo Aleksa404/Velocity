@@ -62,7 +62,7 @@ export const AdminDashboard = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
-      setCurrentPage(1); // Reset to first page on new search
+      setCurrentPage(1);
     }, 500);
 
     return () => clearTimeout(timer);
@@ -78,7 +78,6 @@ export const AdminDashboard = () => {
       const response = await getPendingTrainerRequests();
       setPendingRequests(response.data);
     } catch (error) {
-      console.error("Error fetching pending requests:", error);
       toast.error("Failed to load trainer requests");
     } finally {
       setIsLoading(false);
@@ -89,12 +88,11 @@ export const AdminDashboard = () => {
     setIsLoadingUsers(true);
     try {
       const response = await getAllUsers(currentPage, itemsPerPage, debouncedSearchQuery);
-      // @ts-ignore - API response structure mismatch fix coming
-      setUsers(response.data.users || response.data || []);
-      // @ts-ignore
-      setTotalPages(response.data.totalPages || 1);
+
+      setUsers(response.data?.users || []);
+
+      setTotalPages(response.data?.totalPages || 1);
     } catch (error) {
-      console.error("Error fetching users:", error);
       toast.error("Failed to load users");
     } finally {
       setIsLoadingUsers(false);
@@ -154,12 +152,8 @@ export const AdminDashboard = () => {
       toast.success("User deleted successfully");
       setUsers(prev => prev.filter(u => u.id !== userId));
       setDeletingUserId(null);
-      // Optional: Refresh list if current page becomes empty or count drops
       if (users.length === 1 && currentPage > 1) {
         setCurrentPage(prev => prev - 1);
-      } else {
-        // Re-fetch to keep pagination in sync if needed, or just filter locally
-        // fetchUsers(); // Uncomment if you want to ensure total pages updates immediately
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to delete user");

@@ -13,7 +13,7 @@ const MyWorkshopsPage = () => {
     const [workshops, setWorkshops] = useState<Workshop[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const isTrainer = user?.role === "TRAINER" || user?.role === "ADMIN";
+    const isTrainer = user?.role === "TRAINER";
 
     useEffect(() => {
         if (isTrainer) {

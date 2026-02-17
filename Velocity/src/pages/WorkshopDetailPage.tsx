@@ -374,7 +374,7 @@ const WorkshopDetailPage = () => {
                                 </div>
                             </div>
                         )}
-                        {(user?.role === 'ADMIN' || isOwner) && (
+                        {(user?.role === 'TRAINER' && isOwner) && (
                             <Button
                                 onClick={() => navigate(`/course/${id}/manage`)}
                                 className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl h-9 px-4 shadow-sm flex items-center gap-2"

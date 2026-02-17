@@ -13,7 +13,7 @@ const TrainerDashboard = () => {
     const navigate = useNavigate();
     const user = useUserStore((state) => state.user);
     const [workshopsWithPending, setWorkshopsWithPending] = useState<Workshop[]>([]);
-   // const [isLoading, setIsLoading] = useState(true);
+    // const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         if (user?.id) {
@@ -23,17 +23,14 @@ const TrainerDashboard = () => {
 
     const fetchData = async () => {
         try {
-       //     setIsLoading(true);
-            console.log("Fetching data...");
-
+            //     setIsLoading(true);
             const response = await getTrainerPendingEnrollments();
 
             setWorkshopsWithPending(response.data);
         } catch (error: any) {
-            console.error("Error fetching data:", error.response?.data?.message);
             toast.error(error.response?.data?.message || "Failed to load enrollment requests");
         } finally {
-           // setIsLoading(false);
+            // setIsLoading(false);
         }
     };
 
