@@ -16,6 +16,7 @@ import CreateWorkshopPage from "./pages/Trainer/CreateWorkshopPage.tsx";
 import WorkshopManagementPage from "./pages/Trainer/WorkshopManagementPage.tsx";
 import MyWorkshopsPage from "./pages/Trainer/MyWorkshopsPage.tsx";
 import EnrolledWorkshopsPage from "./pages/EnrolledWorkshopsPage.tsx";
+import AdminWorkshopsPage from "./pages/Admin/AdminWorkshopsPage.tsx";
 import { ThemeProvider } from "./service/theme-provider.tsx";
 
 const router = createBrowserRouter([
@@ -28,6 +29,7 @@ const router = createBrowserRouter([
       { path: "login", element: <LoginPage /> },
       { path: "profile", element: <ProfilePage /> },
       { path: "adminDashboard", element: <AdminDashboard /> },
+      { path: "admin/workshops", element: <AdminWorkshopsPage /> },
       { path: "trainers", element: <TrainersPage /> },
       { path: "trainers/:id", element: <TrainerProfilePage /> },
       { path: "course/all", element: <WorkshopsPage /> },

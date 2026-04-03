@@ -184,6 +184,7 @@ const WorkshopDetailPage = () => {
     }
 
     const isOwner = user && user.id === workshop.trainerId;
+    const isAdmin = user?.role === "ADMIN";
 
     // Get all videos for progress calculation
     const allVideos = [
@@ -296,7 +297,7 @@ const WorkshopDetailPage = () => {
         const isSelected = video.id === selectedVideoId;
         const percentageWatched = progress?.percentWatched || 0;
         const isEnrolled = workshop.enrollmentStatus === "APPROVED";
-        const canWatch = isOwner || isEnrolled;
+        const canWatch = isOwner || isAdmin || isEnrolled;
 
         return (
             <button
@@ -396,7 +397,7 @@ const WorkshopDetailPage = () => {
                         {selectedVideo ? (
                             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                                 {/* MEDIA AREA */}
-                                {(isOwner || workshop.enrollmentStatus === "APPROVED") ? (
+                                {(isOwner || isAdmin || workshop.enrollmentStatus === "APPROVED") ? (
                                     <div className="relative group">
                                         <div className="absolute -inset-4 bg-gradient-to-r from-indigo-500/20 to-purple-600/20 rounded-[2rem] blur-2xl opacity-40 group-hover:opacity-60 transition duration-1000"></div>
                                         <VideoShell>
@@ -453,7 +454,7 @@ const WorkshopDetailPage = () => {
                                                         <Clock className="w-3.5 h-3.5" />
                                                         {formatDuration(selectedVideo.duration)}
                                                     </span>
-                                                    {!isOwner && workshop.enrollmentStatus !== "APPROVED" && (
+                                                    {!isOwner && !isAdmin && workshop.enrollmentStatus !== "APPROVED" && (
                                                         <>
                                                             <span>•</span>
                                                             <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-bold">
@@ -498,7 +499,7 @@ const WorkshopDetailPage = () => {
                                             </div>
                                         </div>
 
-                                        {(isOwner || workshop.enrollmentStatus === "APPROVED") ? (
+                                        {(isOwner || isAdmin || workshop.enrollmentStatus === "APPROVED") ? (
                                             selectedVideo.description && (
                                                 <div className="prose prose-slate dark:prose-invert max-w-none text-muted-foreground leading-relaxed bg-muted/30 p-6 rounded-2xl border border-border shadow-sm">
                                                     <p>{selectedVideo.description}</p>

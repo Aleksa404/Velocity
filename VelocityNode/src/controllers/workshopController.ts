@@ -288,10 +288,12 @@ export const getWorkshopById = async (
         const enrollmentStatus =
             workshop.enrollments?.[0]?.status || null;
 
+        // Admin can view all workshop content without enrollment
+        const isAdmin = req.user?.role === "ADMIN";
 
         res.status(200).json({
             success: true,
-            data: { ...workshop, enrollmentStatus },
+            data: { ...workshop, enrollmentStatus: isAdmin ? "APPROVED" : enrollmentStatus },
             message: "Workshop fetched successfully",
         });
     } catch (error: any) {
@@ -1334,6 +1336,164 @@ export const uploadWorkshopImage = async (
             success: false,
             data: null,
             message: error.message || "Failed to upload workshop image",
+        });
+    }
+};
+
+
+// ==================== ADMIN HANDLERS ====================
+
+export const adminGetAllWorkshops = async (
+    req: Request,
+    res: Response<ApiResponse<any>>
+) => {
+    try {
+        const user = req.user;
+        if (!user || user.role !== "ADMIN") {
+            return res.status(403).json({
+                success: false,
+                data: null,
+                message: "Admin access required",
+            });
+        }
+
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 20;
+        const search = req.query.search as string || "";
+        const skip = (page - 1) * limit;
+
+        const whereClause: any = {};
+
+        if (search.trim()) {
+            whereClause.title = {
+                contains: search.trim(),
+                mode: "insensitive",
+            };
+        }
+
+        const [workshops, total] = await Promise.all([
+            prisma.workshop.findMany({
+                where: whereClause,
+                skip,
+                take: limit,
+                include: {
+                    trainer: {
+                        select: {
+                            id: true,
+                            first_name: true,
+                            last_name: true,
+                            email: true,
+                            role: true,
+                        },
+                    },
+                    _count: {
+                        select: {
+                            enrollments: {
+                                where: { status: "APPROVED" },
+                            },
+                            videos: true,
+                            sections: true,
+                        },
+                    },
+                },
+                orderBy: {
+                    createdAt: "desc",
+                },
+            }),
+            prisma.workshop.count({
+                where: whereClause,
+            }),
+        ]);
+
+        const totalPages = Math.ceil(total / limit);
+
+        return res.status(200).json({
+            success: true,
+            data: workshops,
+            message: "All workshops fetched successfully",
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages,
+            },
+        } as any);
+    } catch (error: any) {
+        console.error("Error fetching all workshops (admin):", error);
+        res.status(500).json({
+            success: false,
+            data: null,
+            message: error.message || "Failed to fetch workshops",
+        });
+    }
+};
+
+
+export const adminDeleteWorkshop = async (
+    req: Request,
+    res: Response<ApiResponse<any>>
+) => {
+    try {
+        const user = req.user;
+        if (!user || user.role !== "ADMIN") {
+            return res.status(403).json({
+                success: false,
+                data: null,
+                message: "Admin access required",
+            });
+        }
+
+        const { id } = req.params;
+
+        const workshop = await prisma.workshop.findUnique({
+            where: { id },
+        });
+
+        if (!workshop) {
+            return res.status(404).json({
+                success: false,
+                data: null,
+                message: "Workshop not found",
+            });
+        }
+
+        await prisma.$transaction(async (tx) => {
+            const videos = await tx.video.findMany({
+                where: { workshopId: id },
+                select: { id: true, url: true, storageType: true },
+            });
+
+            // Queue all video deletions
+            if (videos.length > 0) {
+                await Promise.all(
+                    videos.map(video =>
+                        videoUploadQueue.add("video-delete", {
+                            type: "delete",
+                            videoUrl: video.url,
+                            storageType: video.storageType as any,
+                            userId: user.id,
+                        })
+                    )
+                );
+            }
+
+            // Delete workshop (cascade deletes videos, sections, etc via schema)
+            await tx.workshop.delete({
+                where: { id },
+            });
+        });
+
+        res.status(200).json({
+            success: true,
+            data: null,
+            message: "Workshop deleted successfully by admin",
+        });
+    } catch (error: any) {
+        console.error("Error deleting workshop (admin):", error);
+        res.status(500).json({
+            success: false,
+            data: null,
+            message: error.message || "Failed to delete workshop",
         });
     }
 };

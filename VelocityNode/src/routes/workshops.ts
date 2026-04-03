@@ -18,6 +18,8 @@ import {
     reorderSections,
     uploadWorkshopImage,
     getTrainerPendingEnrollments,
+    adminGetAllWorkshops,
+    adminDeleteWorkshop,
 } from "../controllers/workshopController";
 import { authenticateToken, requireRole } from "../middleware/authMiddleware";
 import { workshopImageUpload } from "../utils/uploadConfig";
@@ -27,6 +29,9 @@ const router = Router();
 
 router.use(authenticateToken);
 
+// Admin content management
+router.get("/admin/all", requireRole("ADMIN"), adminGetAllWorkshops);
+router.delete("/admin/:id", requireRole("ADMIN"), adminDeleteWorkshop);
 
 // Pending enrollments for trainers
 router.get("/pending-requests", requireRole("TRAINER"), getTrainerPendingEnrollments);

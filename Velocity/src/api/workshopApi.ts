@@ -118,3 +118,18 @@ export const uploadWorkshopImage = async (workshopId: string, imageFile: File) =
     );
     return response.data;
 };
+
+// Admin Content Management
+export const adminGetAllWorkshops = async (page = 1, limit = 20, search = "") => {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (search.trim()) {
+        params.append("search", search.trim());
+    }
+    const response = await axiosInstance.get<ApiResponse<Workshop[]>>(`${BASE_URL}/admin/all?${params.toString()}`);
+    return response.data;
+};
+
+export const adminDeleteWorkshop = async (workshopId: string) => {
+    const response = await axiosInstance.delete<ApiResponse<null>>(`${BASE_URL}/admin/${workshopId}`);
+    return response.data;
+};

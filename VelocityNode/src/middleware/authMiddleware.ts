@@ -63,3 +63,34 @@ export function requireRole(requiredRole: "ADMIN" | "TRAINER" | "USER") {
     }
   };
 }
+
+export function requireAnyRole(...roles: Array<"ADMIN" | "TRAINER" | "USER">) {
+  return async (req: any, res: Response, next: NextFunction) => {
+    try {
+      const { id, role } = req.user;
+
+      if (!id) {
+        return res
+          .status(401)
+          .json({ message: "Unauthorized: Missing userId" });
+      }
+      const prisma = new PrismaClient();
+      const user = await prisma.user.findUnique({
+        where: { id: id },
+      });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (!roles.includes(user.role as any)) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      next();
+    } catch (error) {
+      console.error("Error in requireAnyRole middleware:", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  };
+}
