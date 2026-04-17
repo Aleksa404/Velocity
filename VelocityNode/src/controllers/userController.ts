@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import { ApiResponse, UserLoginResponse } from "../types/ApiResponse";
-import { success } from "zod";
 
 const prisma = new PrismaClient();
 

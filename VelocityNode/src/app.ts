@@ -15,11 +15,9 @@ import { seedRootAdmin } from "./utils/seedRootAdmin";
 
 async function main() {
 
-
   const app = express();
 
   const allowedOrigins = process.env.CORS_ORIGIN?.split(',').map(origin => origin.trim()) || [];
-  console.log("Allowed Origins for CORS:", allowedOrigins);
 
   app.use(cors({
     origin: allowedOrigins,
@@ -27,19 +25,12 @@ async function main() {
   })
   );
 
-
   const PORT = process.env.PORT || 5000;
 
   await seedRootAdmin();
   // Middleware
   app.use(express.json());
   app.use(cookieParser());
-
-  // Request Logger for debugging
-  app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-    next();
-  });
 
   // Static file serving for uploads
   app.use("/api/uploads", express.static(path.resolve(process.cwd(), "uploads")));

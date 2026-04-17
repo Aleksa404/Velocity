@@ -4,16 +4,13 @@ import { PrismaClient } from "@prisma/client";
 import {
   ApiResponse,
   UserLoginResponse,
-  UserTokenResponse,
 } from "../types/ApiResponse";
-import { User } from "../types/User";
 import { registerUserSchema } from "../utils/authValidation.schema";
 import {
   generateAccessToken,
   generateRefreshToken,
   rotateRefreshToken,
 } from "../utils/generateToken";
-import { success } from "zod";
 import { verifyCaptcha } from "../utils/captchaService";
 
 const prisma = new PrismaClient();
