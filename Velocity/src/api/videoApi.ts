@@ -102,3 +102,33 @@ export const moveVideoToSection = async (videoId: string, sectionId: string | nu
     }
 };
 
+export const uploadVideoPdf = async (videoId: string, file: File) => {
+    try {
+        const formData = new FormData();
+        formData.append("pdf", file);
+        const response = await axiosInstance.post(`${BASE_URL}/${videoId}/pdf`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+        return response.data;
+    } catch (error: any) {
+        return {
+            success: false,
+            message: error.response?.data?.message || "Failed to upload PDF",
+        };
+    }
+};
+
+export const deleteVideoPdf = async (videoId: string) => {
+    try {
+        const response = await axiosInstance.delete(`${BASE_URL}/${videoId}/pdf`);
+        return response.data;
+    } catch (error: any) {
+        return {
+            success: false,
+            message: error.response?.data?.message || "Failed to delete PDF",
+        };
+    }
+};
+

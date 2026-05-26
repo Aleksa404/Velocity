@@ -119,6 +119,8 @@ model Video {
   storageType StorageType @default(LOCAL)
   duration    Int? // Duration in seconds
   uploadedAt  DateTime    @default(now())
+  pdfUrl      String?
+  pdfOriginalName String?
 
   trainerId  String
   trainer    User     @relation(fields: [trainerId], references: [id], onDelete: Cascade)

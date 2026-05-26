@@ -10,7 +10,7 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Users, Video as VideoIcon, Play, Check, Circle, BookOpen, Clock, ChevronRight, Lock, ListVideo, Settings } from "lucide-react";
+import { Users, Video as VideoIcon, Play, Check, Circle, BookOpen, Clock, ChevronRight, Lock, ListVideo, Settings, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { useUserStore } from "../stores/userStore";
 import { Link } from "react-router";
@@ -500,11 +500,38 @@ const WorkshopDetailPage = () => {
                                         </div>
 
                                         {(isOwner || isAdmin || workshop.enrollmentStatus === "APPROVED") ? (
-                                            selectedVideo.description && (
-                                                <div className="prose prose-slate dark:prose-invert max-w-none text-muted-foreground leading-relaxed bg-muted/30 p-6 rounded-2xl border border-border shadow-sm">
-                                                    <p>{selectedVideo.description}</p>
-                                                </div>
-                                            )
+                                            <div className="space-y-4">
+                                                {selectedVideo.description && (
+                                                    <div className="prose prose-slate dark:prose-invert max-w-none text-muted-foreground leading-relaxed bg-muted/30 p-6 rounded-2xl border border-border shadow-sm">
+                                                        <p>{selectedVideo.description}</p>
+                                                    </div>
+                                                )}
+                                                {selectedVideo.pdfUrl && (
+                                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 hover:from-indigo-500/10 hover:to-purple-500/10 dark:from-indigo-500/10 dark:to-purple-500/10 dark:hover:from-indigo-500/20 dark:hover:to-purple-500/20 border border-indigo-500/20 rounded-2xl transition-all duration-300 shadow-md">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="p-3.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl">
+                                                                <FileDown className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <p className="font-bold text-foreground text-sm truncate max-w-[250px] sm:max-w-md" title={selectedVideo.pdfOriginalName || "Materijal predavanja"}>
+                                                                    {selectedVideo.pdfOriginalName || "Lesson Resource PDF"}
+                                                                </p>
+                                                                <p className="text-xs text-muted-foreground mt-0.5 font-medium">Preuzmite dodatne materijale za ovu lekciju</p>
+                                                            </div>
+                                                        </div>
+                                                        <Button
+                                                            onClick={() => {
+                                                                const apiUrl = import.meta.env.VITE_API_URL || "";
+                                                                window.open(`${apiUrl}${selectedVideo.pdfUrl}`, "_blank");
+                                                            }}
+                                                            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold px-5 py-2.5 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-all duration-300 flex items-center gap-2 text-sm"
+                                                        >
+                                                            <FileDown className="w-4 h-4" />
+                                                            Preuzmi PDF
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </div>
                                         ) : (
                                             <div className="bg-muted/10 p-6 rounded-2xl border border-dashed border-border flex items-center gap-4 text-muted-foreground italic">
                                                 <Lock className="w-5 h-5 opacity-40" />

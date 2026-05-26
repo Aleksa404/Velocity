@@ -30,4 +30,6 @@ export interface Video {
         title: string;
     };
     watchProgress?: VideoWatchProgress[]; // Array from backend, usually contains 0 or 1 item for current user
+    pdfUrl?: string;
+    pdfOriginalName?: string;
 }

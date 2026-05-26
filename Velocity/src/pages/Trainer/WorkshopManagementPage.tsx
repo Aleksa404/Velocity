@@ -12,14 +12,14 @@ import {
     uploadWorkshopImage,
     updateWorkshop
 } from "../../api/workshopApi";
-import { deleteVideo, moveVideoToSection } from "../../api/videoApi";
+import { deleteVideo, moveVideoToSection, uploadVideoPdf, deleteVideoPdf } from "../../api/videoApi";
 import type { Workshop, WorkshopEnrollment, WorkshopSection } from "../../Types/Workshop";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ArrowLeft, Check, X, Video as VideoIcon, Users, Trash, Plus, Pencil, ArrowUp, ArrowDown, ChevronDown, ListVideo, ImagePlus, Settings, Loader2, Layers } from "lucide-react";
+import { ArrowLeft, Check, X, Video as VideoIcon, Users, Trash, Plus, Pencil, ArrowUp, ArrowDown, ChevronDown, ListVideo, ImagePlus, Settings, Loader2, Layers, FileDown, Paperclip } from "lucide-react";
 import VideoForm from "../../components/Video/VideoForm";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -59,6 +59,52 @@ const WorkshopManagementPage = () => {
     const [editTitle, setEditTitle] = useState("");
     const [editDescription, setEditDescription] = useState("");
     const [isSavingDetails, setIsSavingDetails] = useState(false);
+
+    // PDF upload and delete states
+    const [uploadingPdfVideoId, setUploadingPdfVideoId] = useState<string | null>(null);
+    const [deletingPdfVideoId, setDeletingPdfVideoId] = useState<string | null>(null);
+
+    const handlePdfUpload = async (videoId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.type !== "application/pdf") {
+            toast.error("Only PDF files are allowed");
+            return;
+        }
+
+        setUploadingPdfVideoId(videoId);
+        try {
+            const res = await uploadVideoPdf(videoId, file);
+            if (res.success) {
+                toast.success("PDF attached successfully");
+                fetchData();
+            } else {
+                toast.error(res.message || "Failed to upload PDF");
+            }
+        } catch (error) {
+            toast.error("An error occurred during PDF upload");
+        } finally {
+            setUploadingPdfVideoId(null);
+        }
+    };
+
+    const handlePdfDelete = async (videoId: string) => {
+        setDeletingPdfVideoId(videoId);
+        try {
+            const res = await deleteVideoPdf(videoId);
+            if (res.success) {
+                toast.success("PDF removed successfully");
+                fetchData();
+            } else {
+                toast.error(res.message || "Failed to delete PDF");
+            }
+        } catch (error) {
+            toast.error("An error occurred while deleting the PDF");
+        } finally {
+            setDeletingPdfVideoId(null);
+        }
+    };
 
     useEffect(() => {
         if (id) {
@@ -622,64 +668,127 @@ const WorkshopManagementPage = () => {
                                         {allWorkshopVideos.map((video) => {
                                             const currentSection = workshop.sections?.find(s => s.id === video.sectionId);
                                             return (
-                                                <div key={video.id} className="p-4 bg-muted/30 dark:bg-muted/10 border border-border/50 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 group transition-all hover:border-indigo-500/30">
-                                                    <div className="flex flex-col gap-1.5">
-                                                        <span className="font-bold text-foreground group-hover:text-indigo-500 transition-colors">{video.title}</span>
-                                                        <div className="flex items-center gap-2">
-                                                            {currentSection ? (
-                                                                <Badge variant="outline" className="bg-indigo-500/5 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 flex items-center gap-1.5 px-2.5 py-0.5 font-bold text-[10px] uppercase tracking-wider">
-                                                                    <ListVideo className="w-3 h-3" />
-                                                                    {currentSection.title}
-                                                                </Badge>
-                                                            ) : (
-                                                                <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/50 flex items-center gap-1 px-2.5 py-0.5 font-bold text-[10px] uppercase tracking-wider italic">
-                                                                    Not Assigned
-                                                                </Badge>
-                                                            )}
-                                                            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-40">#{video.id.slice(-4)}</span>
+                                                <div key={video.id} className="p-5 bg-muted/30 dark:bg-muted/10 border border-border/50 rounded-2xl flex flex-col gap-4 group transition-all hover:border-indigo-500/30 shadow-sm hover:shadow-md duration-300">
+                                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
+                                                        <div className="flex flex-col gap-1.5">
+                                                            <span className="font-bold text-foreground group-hover:text-indigo-500 transition-colors">{video.title}</span>
+                                                            <div className="flex items-center gap-2">
+                                                                {currentSection ? (
+                                                                    <Badge variant="outline" className="bg-indigo-500/5 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 flex items-center gap-1.5 px-2.5 py-0.5 font-bold text-[10px] uppercase tracking-wider">
+                                                                        <ListVideo className="w-3 h-3" />
+                                                                        {currentSection.title}
+                                                                    </Badge>
+                                                                ) : (
+                                                                    <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border/50 flex items-center gap-1 px-2.5 py-0.5 font-bold text-[10px] uppercase tracking-wider italic">
+                                                                        Not Assigned
+                                                                    </Badge>
+                                                                )}
+                                                                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-40">#{video.id.slice(-4)}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                                                            <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild>
+                                                                    <Button variant="outline" size="sm" className="h-9 px-4 rounded-xl border-border/50 bg-background/50 text-foreground font-bold group-hover:border-indigo-500/20">
+                                                                        Move to <ChevronDown className="ml-2 w-3.5 h-3.5 opacity-50" />
+                                                                    </Button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent align="end" className="w-56 dark:border-white/10 dark:bg-card rounded-xl shadow-xl">
+                                                                    <DropdownMenuLabel className="font-bold text-xs uppercase tracking-widest text-muted-foreground">Course Sections</DropdownMenuLabel>
+                                                                    <DropdownMenuSeparator className="dark:bg-white/5" />
+                                                                    <DropdownMenuItem onClick={() => handleMoveVideo(video.id, null)} className={cn("rounded-lg m-1 font-medium", !video.sectionId ? "bg-indigo-600 text-white" : "hover:bg-muted")}>
+                                                                        None (Main list)
+                                                                    </DropdownMenuItem>
+                                                                    {workshop.sections?.map(section => (
+                                                                        <DropdownMenuItem
+                                                                            key={section.id}
+                                                                            onClick={() => handleMoveVideo(video.id, section.id)}
+                                                                            className={cn("rounded-lg m-1 font-medium", video.sectionId === section.id ? "bg-indigo-600 text-white" : "hover:bg-muted")}
+                                                                        >
+                                                                            {section.title}
+                                                                        </DropdownMenuItem>
+                                                                    ))}
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
+
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-9 w-9 rounded-xl text-rose-500 hover:bg-rose-500/10 hover:text-rose-600"
+                                                                onClick={() => setRemoveDialog({ open: true, videoId: video.id })}
+                                                            >
+                                                                <Trash className="w-4 h-4" />
+                                                            </Button>
                                                         </div>
                                                     </div>
-                                                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                                                        <DropdownMenu>
-                                                            <DropdownMenuTrigger asChild>
-                                                                <Button variant="outline" size="sm" className="h-9 px-4 rounded-xl border-border/50 bg-background/50 text-foreground font-bold group-hover:border-indigo-500/20">
-                                                                    Move to <ChevronDown className="ml-2 w-3.5 h-3.5 opacity-50" />
-                                                                </Button>
-                                                            </DropdownMenuTrigger>
-                                                            <DropdownMenuContent align="end" className="w-56 dark:border-white/10 dark:bg-card rounded-xl shadow-xl">
-                                                                <DropdownMenuLabel className="font-bold text-xs uppercase tracking-widest text-muted-foreground">Course Sections</DropdownMenuLabel>
-                                                                <DropdownMenuSeparator className="dark:bg-white/5" />
-                                                                <DropdownMenuItem onClick={() => handleMoveVideo(video.id, null)} className={cn("rounded-lg m-1 font-medium", !video.sectionId ? "bg-indigo-600 text-white" : "hover:bg-muted")}>
-                                                                    None (Main list)
-                                                                </DropdownMenuItem>
-                                                                {workshop.sections?.map(section => (
-                                                                    <DropdownMenuItem
-                                                                        key={section.id}
-                                                                        onClick={() => handleMoveVideo(video.id, section.id)}
-                                                                        className={cn("rounded-lg m-1 font-medium", video.sectionId === section.id ? "bg-indigo-600 text-white" : "hover:bg-muted")}
-                                                                    >
-                                                                        {section.title}
-                                                                    </DropdownMenuItem>
-                                                                ))}
-                                                            </DropdownMenuContent>
-                                                        </DropdownMenu>
 
-                                                        {/* <Button
-                                                            variant="outline"
-                                                            size="icon"
-                                                            className="h-9 w-9 rounded-xl text-indigo-500 hover:bg-indigo-500/10 hover:text-indigo-600"
-                                                            onClick={() => window.open(video.url, '_blank')}
-                                                        >
-                                                            <PlayCircle className="w-5 h-5" />
-                                                        </Button> */}
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-9 w-9 rounded-xl text-rose-500 hover:bg-rose-500/10 hover:text-rose-600"
-                                                            onClick={() => setRemoveDialog({ open: true, videoId: video.id })}
-                                                        >
-                                                            <Trash className="w-4 h-4" />
-                                                        </Button>
+                                                    {/* PDF Attachment Row */}
+                                                    <div className="pt-3 border-t border-border/30 w-full">
+                                                        {video.pdfUrl ? (
+                                                            <div className="flex items-center justify-between w-full bg-indigo-500/5 dark:bg-indigo-950/20 p-2.5 px-4 rounded-xl border border-indigo-500/15">
+                                                                <div className="flex items-center gap-2.5 min-w-0">
+                                                                    <div className="p-1.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-lg">
+                                                                        <FileDown className="w-4 h-4" />
+                                                                    </div>
+                                                                    <span className="text-xs font-bold text-foreground truncate max-w-[200px] sm:max-w-md" title={video.pdfOriginalName}>
+                                                                        {video.pdfOriginalName}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex items-center gap-2 flex-shrink-0">
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="h-8 w-8 rounded-lg text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10"
+                                                                        onClick={() => {
+                                                                            const apiUrl = import.meta.env.VITE_API_URL || "";
+                                                                            window.open(`${apiUrl}${video.pdfUrl}`, "_blank");
+                                                                        }}
+                                                                    >
+                                                                        <FileDown className="w-4 h-4" />
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        disabled={deletingPdfVideoId === video.id}
+                                                                        className="h-8 w-8 rounded-lg text-rose-500 hover:bg-rose-500/10 hover:text-rose-600"
+                                                                        onClick={() => handlePdfDelete(video.id)}
+                                                                    >
+                                                                        {deletingPdfVideoId === video.id ? (
+                                                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                                        ) : (
+                                                                            <Trash className="w-3.5 h-3.5" />
+                                                                        )}
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex items-center gap-3 w-full">
+                                                                <input
+                                                                    type="file"
+                                                                    accept="application/pdf"
+                                                                    id={`pdf-upload-${video.id}`}
+                                                                    className="hidden"
+                                                                    onChange={(e) => handlePdfUpload(video.id, e)}
+                                                                    disabled={uploadingPdfVideoId === video.id}
+                                                                />
+                                                                <Label
+                                                                    htmlFor={`pdf-upload-${video.id}`}
+                                                                    className="flex items-center gap-2 px-4 py-2 bg-background hover:bg-muted text-muted-foreground hover:text-indigo-600 border border-border rounded-xl cursor-pointer text-xs font-bold transition-all shadow-sm hover:border-indigo-500/20 active:scale-95"
+                                                                >
+                                                                    {uploadingPdfVideoId === video.id ? (
+                                                                        <>
+                                                                            <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600" />
+                                                                            Učitavanje materijala...
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <Paperclip className="w-3.5 h-3.5 text-indigo-500" />
+                                                                            Dodaj PDF Materijal
+                                                                        </>
+                                                                    )}
+                                                                </Label>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             );

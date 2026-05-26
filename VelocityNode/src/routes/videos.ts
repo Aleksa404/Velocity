@@ -1,5 +1,6 @@
 import express from "express";
 import { createVideo, getVideos, deleteVideo, streamVideo, updateVideoSection } from "../controllers/videoController";
+import { uploadPdf, deletePdf } from "../controllers/videoPdfController";
 import { authenticateToken, requireRole } from "../middleware/authMiddleware";
 import {
     updateVideoProgress,
@@ -28,6 +29,23 @@ router.get("/", getVideos);
 router.post("/", requireRole("TRAINER"), multerUploadMiddleware, createVideo);
 router.patch("/:id/section", requireRole("TRAINER"), updateVideoSection);
 router.delete("/:id", requireRole("TRAINER"), deleteVideo);
+
+// Multer setup for PDFs
+const pdfMulterUpload = multer({
+    dest: "uploads/",
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+    fileFilter: (_req, file, cb) => {
+        if (file.mimetype === "application/pdf") {
+            cb(null, true);
+        } else {
+            cb(new Error("Only PDF files are allowed"));
+        }
+    }
+}).single("pdf");
+
+// PDF endpoints
+router.post("/:id/pdf", requireRole("TRAINER"), pdfMulterUpload, uploadPdf);
+router.delete("/:id/pdf", requireRole("TRAINER"), deletePdf);
 
 
 // Video progress tracking routes

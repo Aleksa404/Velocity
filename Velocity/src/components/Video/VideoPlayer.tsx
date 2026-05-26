@@ -221,6 +221,7 @@ const VideoPlayer = ({
                 ref={videoRef}
                 src={fullVideoUrl}
                 controls
+                controlsList="nodownload"
                 autoPlay
                 className="w-full h-full"
                 playsInline

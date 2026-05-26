@@ -47,7 +47,6 @@ const processQueue = (error: any, token: string | null = null): void => {
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
     // Read token from localStorage on each request to ensure we use the current token
-    // This fixes the issue where switching users would still use the old cached token
     const currentToken = localStorage.getItem("accessToken");
     if (currentToken && config.headers) {
       config.headers.Authorization = `Bearer ${currentToken}`;
