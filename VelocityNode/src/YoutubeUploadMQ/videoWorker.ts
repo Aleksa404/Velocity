@@ -46,7 +46,7 @@ function compressVideo(inputPath: string, outputPath: string): Promise<void> {
             .outputOptions([
                 "-c:v libx264",           // H.264 codec for broad compatibility
                 "-crf 28",                // Compression quality (23-28 is good balance)
-                "-preset fast",           // Encoding speed/quality tradeoff
+                "-preset superfast",           // Encoding speed/quality tradeoff
                 "-c:a aac",               // AAC audio codec
                 "-b:a 128k",              // Audio bitrate
                 "-movflags +faststart",   // Enable streaming before full download

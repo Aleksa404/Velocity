@@ -4,7 +4,9 @@ const BASE_URL = "/videos";
 
 export const createVideo = async (data: FormData) => {
     try {
-        const response = await axiosInstance.post(`${BASE_URL}`, data);
+        const response = await axiosInstance.post(`${BASE_URL}`, data, {
+            timeout: 5 * 60 * 1000, // 5 minutes
+        });
         return response.data;
     } catch (error: any) {
         return {
