@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { login } from "../api/authApi";
-import { useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -36,6 +36,11 @@ const LoginPage = () => {
   const [loginError, setLoginError] = useState<string>("");
   const [isSuccess, setIsSuccess] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const searchParams = new URLSearchParams(location.search);
+  const from = searchParams.get("from") ?? "/";
+
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -56,9 +61,7 @@ const LoginPage = () => {
       }
 
       setIsSuccess(true);
-      setTimeout(() => {
-        navigate("/");
-      }, 1000);
+      navigate(from);
     } catch (error: any) {
       console.error(error);
       setLoginError("An unexpected error occurred. Please try again.");
@@ -189,19 +192,12 @@ const LoginPage = () => {
         <CardFooter className="flex flex-col space-y-2 text-center text-sm text-muted-foreground">
           <div>
             Don&apos;t have an account?{" "}
-            <a
-              href="/register"
-              className="font-medium text-primary underline-offset-4 hover:underline"
-            >
+            <Link to={`/register?from=${encodeURIComponent(from)}`}
+              className="font-medium text-primary underline-offset-4 hover:underline">
               Sign up
-            </a>
+            </Link>
           </div>
-          <a
-            href="#"
-            className="font-medium text-primary underline-offset-4 hover:underline"
-          >
-            Forgot your password?
-          </a>
+
         </CardFooter>
       </Card>
     </div>

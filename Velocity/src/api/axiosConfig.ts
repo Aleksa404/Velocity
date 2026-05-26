@@ -146,7 +146,8 @@ axiosInstance.interceptors.response.use(
 
         // Redirect to login page
         if (typeof window !== "undefined") {
-          window.location.href = "/login";
+          const from = window.location.pathname;
+          window.location.href = `/login?from=${encodeURIComponent(from)}`;
         }
 
         return Promise.reject(refreshError);

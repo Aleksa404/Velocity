@@ -1,7 +1,7 @@
 import Logo from "../assets/Logo.jpg";
 import { useUserStore } from "../stores/userStore";
 import { logout } from "../api/authApi";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,11 @@ const Navbar = () => {
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [showResults, setShowResults] = useState(false);
+    const location = useLocation();
+
+    const searchParams = new URLSearchParams(location.search);
+    const from = searchParams.get("from") ?? "/";
+
 
     const { setTheme, theme } = useTheme()
 
@@ -282,10 +287,10 @@ const Navbar = () => {
                         </DropdownMenu>
                     ) : (
                         <div className="flex gap-2">
-                            <Button variant="ghost" onClick={() => navigate("/login")}>
+                            <Button variant="ghost" onClick={() => navigate(`/login?from=${encodeURIComponent(from)}`)}>
                                 Sign In
                             </Button>
-                            <Button onClick={() => navigate("/register")}>Sign up</Button>
+                            <Button onClick={() => navigate(`/register?from=${encodeURIComponent(from)}`)}>Sign up</Button>
                         </div>
                     )}
                 </div>
