@@ -428,7 +428,7 @@ const WorkshopDetailPage = () => {
                                             </div>
                                             <h3 className="text-2xl md:text-3xl font-bold text-white mb-3 md:mb-4 tracking-tight">Zakljucan sadrzaj</h3>
                                             <p className="text-indigo-100/80 mb-8 md:mb-10 text-base md:text-lg leading-relaxed">
-                                                Prijavite se za {workshop.title} da bi ste otkljucali sve lekcije i sadrzaj.
+                                                Prijavite se za {workshop.title} da biste otkljucali sve lekcije i sadrzaj.
                                             </p>
                                             <div className="flex justify-center scale-110">
                                                 {getEnrollmentButton()}
